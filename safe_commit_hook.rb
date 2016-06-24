@@ -3,34 +3,24 @@
 class SafeCommitHook
   def run(args, check_patterns)
     errors = []
-    # git_dir_name = `git rev-parse --show-toplevel`.split("/")[0]
+
     files = Dir.glob("**/*").select { |e| File.file?(e) }
-    # p files
-    # [1, 2, 3].inject({}){|agg, b| p agg; p b ; agg[b] = b ; agg}
     file_basenames = files.inject({}) { |agg, fn|
       basename = File::basename(fn)
       agg[fn] = basename
       agg
     }
 
-    # binding.pry
     check_patterns.each do |cp|
-      # case cp[:part]
-      # when "filename"
-
-      if cp[:part] == "filename"
-        # p "FILENAME"
-        matches = file_basenames.select do |filepath, basename|
-          # p filepath
-          # p cp[:pattern]
-          escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
-          match_result = basename =~ Regexp.new(escaped_pattern)
-          match_result == 0
-        end
-
-        matches.each { |filepath, basename|
-          errors << "#{cp[:caption]} in file #{filepath}"
-        }
+      case cp[:part]
+        when "filename"
+          file_basenames.select { |filepath, basename|
+            escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
+            match_result = basename =~ Regexp.new(escaped_pattern)
+            match_result == 0
+          }.each { |filepath, basename|
+            errors << "#{cp[:caption]} in file #{filepath}"
+          }
       end
     end
 
