@@ -27,18 +27,50 @@ describe "SafeCommitHook" do
     end
   end
 
-  describe "with filename including rsa" do
-    it "returns with exit 1 and prints error" do
-      create_file_with_name("id_rsa")
+  describe "with check patterns including filename rsa" do
+    let(:check_patterns) { [{
+                                part: "filename",
+                                type: "regex",
+                                pattern: '\A.*_rsa\Z',
+                                caption: "Private SSH key",
+                                description: "null"
+                            }] }
+    describe "with filename including rsa" do
+
+      it "returns with exit 1 and prints error" do
+        create_file_with_name("id_rsa")
+        expect {
+          begin
+            subject
+          rescue SystemExit
+          end
+        }.to output("Private SSH key in file fake_git/id_rsa\n").to_stdout
+      end
+    end
+  end
+
+  describe "with regex check pattern for filename" do
+    let(:check_patterns) { [{
+                                part: "filename",
+                                type: "regex",
+                                pattern: ".*",
+                                caption: "Detected literally everything!",
+                                description: "null"
+                            }] }
+    it "detects file with a name that matches the regex" do
+      create_file_with_name("literally-anything")
       expect {
         begin
           subject
         rescue SystemExit
         end
-      }.to output("Private SSH key: id_rsa\n").to_stdout
+      }.to output(/Detected literally everything!/).to_stdout
     end
   end
 
+  # multiple matches to one check pattern
+  # one file matches multiple check patterns (or just the first?)
+  # whitelist
   describe "with filename including rsa in several directories"
   describe "with multiple bad filenames caught by the regexes"
   describe "with bad file extension"
