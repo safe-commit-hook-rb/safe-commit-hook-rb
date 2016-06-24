@@ -21,3 +21,9 @@ To use in your project:
 ````
 cp safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
 ````
+
+### Design notes
+
+This is intentionally all one ruby file with no dependencies, so that it will be maximally easy to use as a pre-commit hook.
+
+The check patterns are directly taken from jandre/safe-commit-hook which itself takes from git-rob. I currently have no strategy to pull updates from "upstream"

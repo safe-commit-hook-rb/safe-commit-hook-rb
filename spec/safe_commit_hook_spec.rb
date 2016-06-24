@@ -75,13 +75,13 @@ describe "SafeCommitHook" do
   end
 
   describe "with extensions check pattern" do
-    let(:check_patterns) {[{
-        part: "extension",
-        type: "match",
-        pattern: "pem",
-        caption: "Potential cryptographic private key",
-        description: "null"
-    }]}
+    let(:check_patterns) { [{
+                                part: "extension",
+                                type: "match",
+                                pattern: "pem",
+                                caption: "Potential cryptographic private key",
+                                description: "null"
+                            }] }
     it "detects file with bad file ending" do
       create_file_with_name("probably_bad.pem")
       did_exit = false

@@ -22,7 +22,7 @@ class SafeCommitHook
             errors << "#{cp[:caption]} in file #{filepath}"
           }
         when "extension"
-          file_basenames.select {|filepath, basename|
+          file_basenames.select { |filepath, basename|
             File.extname(basename).gsub(".", "") == cp[:pattern] # this might have to get fancier for regexen
           }.each { |filepath, basename|
             errors << "#{cp[:caption]} in file #{filepath}"
@@ -31,7 +31,13 @@ class SafeCommitHook
     end
 
     if errors.size > 0
+      start_red = "\e[31m"
+      end_color = "\e[0m"
+      puts start_red
+      puts "[ERROR] Unable to complete git commit."
+      puts "See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details"
       puts errors
+      puts end_color
       exit 1
     end
   end
@@ -445,7 +451,6 @@ CHECK_PATTERNS = [
         description: "Environment file that contains sensitive data"
     }
 ]
-
 
 if $PROGRAM_NAME == __FILE__
   SafeCommitHook.new.run(ARGV, CHECK_PATTERNS)
