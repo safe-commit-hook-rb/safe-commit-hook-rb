@@ -23,7 +23,7 @@ class SafeCommitHook
           }
         when "extension"
           file_basenames.select {|filepath, basename|
-            basename.split(".").last == cp[:pattern] # this might have to get fancier for regexen
+            File.extname(basename).gsub(".", "") == cp[:pattern] # this might have to get fancier for regexen
           }.each { |filepath, basename|
             errors << "#{cp[:caption]} in file #{filepath}"
           }
