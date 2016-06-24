@@ -39,12 +39,15 @@ describe "SafeCommitHook" do
 
       it "returns with exit 1 and prints error" do
         create_file_with_name("id_rsa")
+        did_exit = false
         expect {
           begin
             subject
           rescue SystemExit
+            did_exit = true
           end
         }.to output("Private SSH key in file fake_git/id_rsa\n").to_stdout
+        expect(did_exit).to be true
       end
     end
   end
@@ -59,12 +62,15 @@ describe "SafeCommitHook" do
                             }] }
     it "detects file with a name that matches the regex" do
       create_file_with_name("literally-anything")
+      did_exit = false
       expect {
         begin
           subject
         rescue SystemExit
+          did_exit = true
         end
       }.to output(/Detected literally everything!/).to_stdout
+      expect(did_exit).to be true
     end
   end
 

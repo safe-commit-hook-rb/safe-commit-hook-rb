@@ -26,7 +26,7 @@ class SafeCommitHook
 
     if errors.size > 0
       puts errors
-      # exit 1
+      exit 1
     end
   end
 end
