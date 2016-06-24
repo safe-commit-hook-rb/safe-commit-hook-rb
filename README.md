@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/compwron/safe-commit-hook-rb.svg)](https://travis-ci.org/compwron/safe-commit-hook-rb)
 
 Purpose:
 --------

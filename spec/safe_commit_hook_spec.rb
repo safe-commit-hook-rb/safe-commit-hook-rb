@@ -46,7 +46,7 @@ describe "SafeCommitHook" do
           rescue SystemExit
             did_exit = true
           end
-        }.to output("Private SSH key in file fake_git/id_rsa\n").to_stdout
+        }.to output(/Private SSH key in file .*id_rsa/).to_stdout
         expect(did_exit).to be true
       end
     end
@@ -71,6 +71,33 @@ describe "SafeCommitHook" do
         end
       }.to output(/Detected literally everything!/).to_stdout
       expect(did_exit).to be true
+    end
+  end
+
+  describe "with extensions check pattern" do
+    let(:check_patterns) {[{
+        part: "extension",
+        type: "match",
+        pattern: "pem",
+        caption: "Potential cryptographic private key",
+        description: "null"
+    }]}
+    it "detects file with bad file ending" do
+      create_file_with_name("probably_bad.pem")
+      did_exit = false
+      expect {
+        begin
+          subject
+        rescue SystemExit
+          did_exit = true
+        end
+      }.to output(/Potential cryptographic private key in file .*probably_bad.pem/).to_stdout
+      expect(did_exit).to be true
+    end
+
+    it "does not detect file with file ending in its name but not actually a bad file ending" do
+      create_file_with_name("pem.notpem")
+      expect { subject }.to_not raise_error
     end
   end
 
@@ -99,3 +126,12 @@ end
 # file list
 # - skip if whitelist
 # - check contents
+
+
+
+
+
+
+
+
+
