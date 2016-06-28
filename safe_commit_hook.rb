@@ -27,6 +27,14 @@ class SafeCommitHook
           }.each { |filepath, basename|
             errors << "#{cp[:caption]} in file #{filepath}"
           }
+        when "path"
+          file_basenames.select { |filepath, basename|
+            escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
+            match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
+            match_result == 0
+          }.each { |filepath, basename|
+            errors << "#{cp[:caption]} in file #{filepath}"
+          }
       end
     end
 

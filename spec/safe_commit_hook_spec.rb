@@ -16,6 +16,17 @@ describe "SafeCommitHook" do
     File.open("#{repo}/#{message}", 'w') { |f| f.puts("test file contents") }
   end
 
+  def create_file_in_path(path)
+    dir = File.dirname(path)
+    FileUtils.mkdir_p(dir)
+    File.new(path, 'w')
+  end
+
+  def add_to_whitelist(path)
+    whitelist = "#{repo}/.ignored_security_risks"
+    `echo #{path} >> #{whitelist}` # TODO use FileUtil here
+  end
+
   after do
     FileUtils.rm_r(repo)
   end
@@ -72,6 +83,17 @@ describe "SafeCommitHook" do
       }.to output(/Detected literally everything!/).to_stdout
       expect(did_exit).to be true
     end
+
+    xit "accepts whitelisting" do
+      create_file_with_name("literally-anything")
+      add_to_whitelist("literally-anything")
+      expect {
+        begin
+          subject
+        rescue SystemExit
+        end
+      }.to_not output(/literally-anything/).to_stdout
+    end
   end
 
   describe "with extensions check pattern" do
@@ -101,37 +123,39 @@ describe "SafeCommitHook" do
     end
   end
 
-  # multiple matches to one check pattern
-  # one file matches multiple check patterns (or just the first?)
-  # whitelist
-  describe "with filename including rsa in several directories"
-  describe "with multiple bad filenames caught by the regexes"
-  describe "with bad file extension"
-  describe "with bad filepath"
-  describe "with bad file contents"
+  describe "with path check pattern" do
+    let(:check_patterns) { [{
+                                part: "path",
+                                type: "regex",
+                                pattern: '\A\.?gem/credentials\Z',
+                                caption: "Rubygems credentials file",
+                                description: "Might contain API key for a rubygems.org account."
+                            }] }
+
+    it "does not falsely detect" do
+      create_file_in_path("gem/foo/credentials/something.txt")
+      expect { subject }.to_not raise_error
+    end
+
+    context "with bad path" do
+      let(:filepath) { "gem/credentials/something.txt" }
+
+      after do
+        FileUtils.rm_r(filepath.split("/")[0])
+      end
+
+      it "detects bad path" do
+        create_file_in_path(filepath)
+        did_exit = false
+        expect {
+          begin
+            subject
+          rescue SystemExit
+            did_exit = true
+          end
+        }.to output(/Rubygems credentials file in file gem\/credentials\/something.txt/).to_stdout
+        expect(did_exit).to be true
+      end
+    end
+  end
 end
-
-# extension, type, filename
-# regex, match
-
-# filename, extension, path
-
-# whitelist
-
-
-# file list
-# - skip if whitelist
-# - check all names
-
-# file list
-# - skip if whitelist
-# - check contents
-
-
-
-
-
-
-
-
-
