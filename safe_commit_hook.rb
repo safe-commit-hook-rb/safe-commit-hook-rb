@@ -1,15 +1,14 @@
 #!/usr/bin/env ruby
 
+require 'pry' # TODO remove
+
 class SafeCommitHook
+  WHITELIST_NAME = ".ignored_security_risks"
+
   def run(args, check_patterns)
     errors = []
 
-    files = Dir.glob("**/*").select { |e| File.file?(e) }
-    file_basenames = files.inject({}) { |agg, fn|
-      basename = File::basename(fn)
-      agg[fn] = basename
-      agg
-    }
+    file_basenames = get_file_basenames()
 
     check_patterns.each do |cp|
       case cp[:part]
@@ -48,6 +47,39 @@ class SafeCommitHook
       puts end_color
       exit 1
     end
+  end
+
+  def get_file_basenames
+    files = Dir.glob("**/*", File::FNM_DOTMATCH).select { |e| File.file?(e) }
+    files_to_ignore = whitelisted_files(files)
+
+    file_basenames = files.inject({}) { |agg, fn|
+      basename = File::basename(fn)
+      agg[fn] = basename
+      agg
+    }.reject { |filepath, basename|
+      filepath.split("/")[0] == ".git"
+    }
+
+
+    file_basenames.reject! { |filepath, basename|
+      files_to_ignore.include?(filepath)
+    }
+    file_basenames
+  end
+
+  def ignore_git_files(file)
+  end
+
+  def whitelisted_files(files)
+    whitelist = files.find { |fn|
+      fn.include?(WHITELIST_NAME)
+    }
+
+    unless whitelist
+      File.open(WHITELIST_NAME, "w")
+    end
+    IO.readlines(WHITELIST_NAME).map(&:strip)
   end
 end
 

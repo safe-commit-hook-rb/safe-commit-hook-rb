@@ -5,11 +5,17 @@ describe "SafeCommitHook" do
   subject { SafeCommitHook.new.run(args, check_patterns) }
   let(:args) { [] }
   let(:check_patterns) { [] }
+  let(:whitelist) { ".ignored_security_risks" }
+  let(:gem_credential) { "gem/credentials/something.txt" }
 
   let(:repo) { 'fake_git' }
 
   before do
+    if Dir.exists?(repo)
+      FileUtils.rm_r(repo)
+    end
     FileUtils.mkdir(repo)
+    FileUtils.rm_r(gem_credential.split("/")[0], force: true)
   end
 
   def create_file_with_name(message)
@@ -22,13 +28,9 @@ describe "SafeCommitHook" do
     File.new(path, 'w')
   end
 
-  def add_to_whitelist(path)
-    whitelist = "#{repo}/.ignored_security_risks"
-    `echo #{path} >> #{whitelist}` # TODO use FileUtil here
-  end
-
-  after do
-    FileUtils.rm_r(repo)
+  def put_in_whitelist(path)
+    `echo #{path} > #{whitelist}`
+    expect(IO.binread(whitelist)).to include(path)
   end
 
   describe "with no committed passwords" do
@@ -84,15 +86,25 @@ describe "SafeCommitHook" do
       expect(did_exit).to be true
     end
 
-    xit "accepts whitelisting" do
-      create_file_with_name("literally-anything")
-      add_to_whitelist("literally-anything")
+    it "accepts whitelisting" do
+      whitelisted_file = "whitelisted_file.txt"
+      create_file_with_name(whitelisted_file)
+      put_in_whitelist("#{repo}/#{whitelisted_file}")
       expect {
         begin
           subject
         rescue SystemExit
         end
-      }.to_not output(/literally-anything/).to_stdout
+      }.to_not output(/#{whitelisted_file}/).to_stdout
+    end
+
+    it "always ignores .git" do
+      expect {
+        begin
+          subject
+        rescue SystemExit
+        end
+      }.to_not output(/^A\.git\//).to_stdout
     end
   end
 
@@ -138,14 +150,8 @@ describe "SafeCommitHook" do
     end
 
     context "with bad path" do
-      let(:filepath) { "gem/credentials/something.txt" }
-
-      after do
-        FileUtils.rm_r(filepath.split("/")[0])
-      end
-
       it "detects bad path" do
-        create_file_in_path(filepath)
+        create_file_in_path(gem_credential)
         did_exit = false
         expect {
           begin
