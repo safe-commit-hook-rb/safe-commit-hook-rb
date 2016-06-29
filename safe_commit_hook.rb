@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'pry' # TODO remove
-
 class SafeCommitHook
   WHITELIST_NAME = ".ignored_security_risks"
 
