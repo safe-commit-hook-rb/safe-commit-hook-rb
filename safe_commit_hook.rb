@@ -44,6 +44,7 @@ class SafeCommitHook
       puts start_red
       puts "[ERROR] Unable to complete git commit."
       puts "See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details"
+      puts "Add full filepath to .ignored_security_risks to ignore"
       puts errors
       puts end_color
       exit 1
