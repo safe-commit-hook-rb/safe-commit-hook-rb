@@ -1,4 +1,6 @@
 .bundle/
 .idea/
 .ignored_security_risks
-fake_git/
+bin/
+gem/
+
