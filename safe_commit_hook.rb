@@ -34,7 +34,10 @@ class SafeCommitHook
           }
       end
     end
+    print_errors_and_exit(errors)
+  end
 
+  def print_errors_and_exit(errors)
     if errors.size > 0
       start_red = "\e[31m"
       end_color = "\e[0m"
@@ -51,19 +54,15 @@ class SafeCommitHook
     files = Dir.glob("**/*", File::FNM_DOTMATCH).select { |e| File.file?(e) }
     files_to_ignore = whitelisted_files(files)
 
-    file_basenames = files.inject({}) { |agg, fn|
+    files.inject({}) { |agg, fn|
       basename = File::basename(fn)
       agg[fn] = basename
       agg
     }.reject { |filepath, basename|
       filepath.split("/")[0] == ".git"
-    }
-
-
-    file_basenames.reject! { |filepath, basename|
+    }.reject { |filepath, basename|
       files_to_ignore.include?(filepath)
     }
-    file_basenames
   end
 
   def ignore_git_files(file)
