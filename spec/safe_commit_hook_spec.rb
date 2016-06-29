@@ -1,5 +1,4 @@
 require_relative "../safe_commit_hook"
-require "pry"
 
 describe "SafeCommitHook" do
   subject { SafeCommitHook.new.run(args, check_patterns) }
@@ -38,6 +37,11 @@ describe "SafeCommitHook" do
       create_file_with_name("ok_file.txt")
       expect { subject }.to_not raise_error
     end
+  end
+
+  it "does not error when whitelist is missing" do
+    FileUtils.rm(whitelist)
+    expect { subject }.to_not raise_error
   end
 
   describe "with check patterns including filename rsa" do

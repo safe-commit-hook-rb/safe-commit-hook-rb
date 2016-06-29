@@ -52,20 +52,19 @@ class SafeCommitHook
 
   def get_file_basenames
     files = Dir.glob("**/*", File::FNM_DOTMATCH).select { |e| File.file?(e) }
-    files_to_ignore = whitelisted_files(files)
+    whitelist = whitelisted_files(files)
 
     files.inject({}) { |agg, fn|
       basename = File::basename(fn)
       agg[fn] = basename
       agg
     }.reject { |filepath, basename|
-      filepath.split("/")[0] == ".git"
-    }.reject { |filepath, basename|
-      files_to_ignore.include?(filepath)
+      is_git_file?(filepath) || whitelist.include?(filepath)
     }
   end
 
-  def ignore_git_files(file)
+  def is_git_file?(filepath)
+    filepath.split("/")[0] == ".git"
   end
 
   def whitelisted_files(files)
