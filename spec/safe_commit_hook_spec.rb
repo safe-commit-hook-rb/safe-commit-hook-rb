@@ -41,7 +41,7 @@ describe "SafeCommitHook" do
   end
 
   it "does not error when whitelist is missing" do
-    FileUtils.rm(whitelist)
+    FileUtils.rm_f(whitelist)
     expect { subject }.to_not raise_error
   end
 
