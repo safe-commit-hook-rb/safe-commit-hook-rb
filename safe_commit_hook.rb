@@ -499,5 +499,5 @@ CHECK_PATTERNS = [
 ]
 
 if $PROGRAM_NAME == __FILE__
-  SafeCommitHook.new.run(ARGV, CHECK_PATTERNS)
+  SafeCommitHook.new(STDOUT).run(ARGV, CHECK_PATTERNS)
 end
