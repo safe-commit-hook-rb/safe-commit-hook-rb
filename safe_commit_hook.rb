@@ -3,51 +3,60 @@
 class SafeCommitHook
   WHITELIST_NAME = ".ignored_security_risks"
 
-  def run(args, check_patterns)
-    errors = []
+  def initialize(stdout)
+    $stdout = stdout
+    @errors = []
+  end
 
+  def run(args, check_patterns)
     file_basenames = get_file_basenames()
 
     check_patterns.each do |cp|
       case cp[:part]
         when "filename"
-          file_basenames.select { |filepath, basename|
+          file_basenames.each { |filepath, basename|
             escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
             match_result = basename =~ Regexp.new(escaped_pattern)
-            match_result == 0
-          }.each { |filepath, basename|
-            errors << "#{cp[:caption]} in file #{filepath}"
+            if match_result == 0
+              add_errors(cp, filepath)
+            end
           }
         when "extension"
           file_basenames.select { |filepath, basename|
-            File.extname(basename).gsub(".", "") == cp[:pattern] # this might have to get fancier for regexen
-          }.each { |filepath, basename|
-            errors << "#{cp[:caption]} in file #{filepath}"
+            if File.extname(basename).gsub(".", "") == cp[:pattern] # this might have to get fancier for regexen
+              add_errors(cp, filepath)
+            end
           }
         when "path"
           file_basenames.select { |filepath, basename|
             escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
             match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
-            match_result == 0
-          }.each { |filepath, basename|
-            errors << "#{cp[:caption]} in file #{filepath}"
+            if match_result == 0
+              add_errors(cp, filepath)
+            end
           }
       end
     end
-    print_errors_and_exit(errors)
+    print_errors_and_exit
   end
 
-  def print_errors_and_exit(errors)
-    if errors.size > 0
+  def add_errors(cp, filepath)
+    @errors << "#{cp[:caption]} in file #{filepath}"
+  end
+
+  def print_errors_and_exit
+    if @errors.size > 0
       start_red = "\e[31m"
       end_color = "\e[0m"
       puts start_red
       puts "[ERROR] Unable to complete git commit."
       puts "See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details"
       puts "Add full filepath to .ignored_security_risks to ignore"
-      puts errors
+      puts @errors
       puts end_color
       exit 1
+    else
+      print "safe-commit-hook check looks clean. See ignored files in #{WHITELIST_NAME}"
     end
   end
 

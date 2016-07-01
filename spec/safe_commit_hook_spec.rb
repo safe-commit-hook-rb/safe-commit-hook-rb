@@ -1,7 +1,8 @@
 require_relative "../safe_commit_hook"
 
 describe "SafeCommitHook" do
-  subject { SafeCommitHook.new.run(args, check_patterns) }
+  let(:captured_output) { StringIO.new }
+  subject { SafeCommitHook.new(captured_output).run(args, check_patterns) }
   let(:args) { [] }
   let(:check_patterns) { [] }
   let(:whitelist) { ".ignored_security_risks" }
@@ -57,13 +58,12 @@ describe "SafeCommitHook" do
       it "returns with exit 1 and prints error" do
         create_file_with_name("id_rsa")
         did_exit = false
-        expect {
-          begin
-            subject
-          rescue SystemExit
-            did_exit = true
-          end
-        }.to output(/Private SSH key in file .*id_rsa/).to_stdout
+        begin
+          subject
+        rescue SystemExit
+          did_exit = true
+        end
+        expect(captured_output.string).to match /Private SSH key in file .*id_rsa/
         expect(did_exit).to be true
       end
     end
@@ -80,13 +80,12 @@ describe "SafeCommitHook" do
     it "detects file with a name that matches the regex" do
       create_file_with_name("literally-anything")
       did_exit = false
-      expect {
-        begin
-          subject
-        rescue SystemExit
-          did_exit = true
-        end
-      }.to output(/Detected literally everything!/).to_stdout
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /Detected literally everything!/
       expect(did_exit).to be true
     end
 
@@ -94,21 +93,19 @@ describe "SafeCommitHook" do
       whitelisted_file = "whitelisted_file.txt"
       create_file_with_name(whitelisted_file)
       put_in_whitelist("#{repo}/#{whitelisted_file}")
-      expect {
-        begin
-          subject
-        rescue SystemExit
-        end
-      }.to_not output(/#{whitelisted_file}/).to_stdout
+      begin
+        subject
+      rescue SystemExit
+      end
+      expect(captured_output.string).to_not match /#{whitelisted_file}/
     end
 
     it "always ignores .git" do
-      expect {
-        begin
-          subject
-        rescue SystemExit
-        end
-      }.to_not output(/^A\.git\//).to_stdout
+      begin
+        subject
+      rescue SystemExit
+      end
+      expect(captured_output.string).to_not match /^A\.git\//
     end
   end
 
@@ -123,13 +120,12 @@ describe "SafeCommitHook" do
     it "detects file with bad file ending" do
       create_file_with_name("probably_bad.pem")
       did_exit = false
-      expect {
-        begin
-          subject
-        rescue SystemExit
-          did_exit = true
-        end
-      }.to output(/Potential cryptographic private key in file .*probably_bad.pem/).to_stdout
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /Potential cryptographic private key in file .*probably_bad.pem/
       expect(did_exit).to be true
     end
 
@@ -157,13 +153,12 @@ describe "SafeCommitHook" do
       it "detects bad path" do
         create_file_in_path(gem_credential)
         did_exit = false
-        expect {
-          begin
-            subject
-          rescue SystemExit
-            did_exit = true
-          end
-        }.to output(/Rubygems credentials file in file gem\/credentials\/something.txt/).to_stdout
+        begin
+          subject
+        rescue SystemExit
+          did_exit = true
+        end
+        expect(captured_output.string).to match /Rubygems credentials file in file gem\/credentials\/something.txt/
         expect(did_exit).to be true
       end
     end

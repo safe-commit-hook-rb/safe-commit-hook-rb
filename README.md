@@ -28,4 +28,6 @@ This is intentionally all one ruby file with no dependencies, so that it will be
 
 The check patterns are directly taken from [jandre/safe-commit-hook](https://github.com/jandre/safe-commit-hook) which itself takes from [git-rob](https://github.com/michenriksen/gitrob). I currently have no strategy to pull updates from "upstream".
 
+The generated file .ignored_security_risks is supposed to be checked in. The scary name is on purpose.
+
 Pull requests are very welcome.
