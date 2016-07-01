@@ -22,6 +22,21 @@ To use in your project:
 cp safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
 ````
 
+Expected output (for no errors found)
+
+````
+safe-commit-hook check looks clean. See ignored files in .ignored_security_risks
+````
+
+Expected outpug (for error found)
+
+````
+[ERROR] Unable to complete git commit.
+See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details
+Add full filepath to .ignored_security_risks to ignore
+Potential cryptographic private key in file foo.pem
+````
+
 ### Design notes
 
 This is intentionally all one ruby file with no dependencies, so that it will be maximally easy to use as a pre-commit hook.

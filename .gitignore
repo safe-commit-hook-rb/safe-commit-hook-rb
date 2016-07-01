@@ -1,6 +1,3 @@
 .bundle/
 .idea/
-.ignored_security_risks
 bin/
-gem/
-fake_git
