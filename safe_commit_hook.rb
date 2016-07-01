@@ -61,8 +61,8 @@ class SafeCommitHook
   end
 
   def get_file_basenames
-    files = Dir.glob("**/*", File::FNM_DOTMATCH).select { |e| File.file?(e) }
-    whitelist = whitelisted_files(files)
+    files = `git diff --name-only --cached`.split("\n").select { |e| File.file?(e) }
+    whitelist = whitelisted_files
 
     files.inject({}) { |agg, fn|
       basename = File::basename(fn)
@@ -77,15 +77,17 @@ class SafeCommitHook
     filepath.split("/")[0] == ".git"
   end
 
-  def whitelisted_files(files)
-    whitelist = files.find { |fn|
-      fn.include?(WHITELIST_NAME)
-    }
-
-    unless whitelist
-      File.open(WHITELIST_NAME, "w")
+  def whitelisted_files
+    whitelists = Dir.glob("**/*", File::FNM_DOTMATCH).select { |f| f.include?(WHITELIST_NAME) }
+    files = []
+    if whitelists == []
+      File.new(WHITELIST_NAME, "w")
+      whitelists << WHITELIST_NAME
     end
-    IO.readlines(WHITELIST_NAME).map(&:strip)
+    whitelists.each { |w|
+      files << IO.readlines(w).map(&:strip)
+    }
+    files.flatten
   end
 end
 

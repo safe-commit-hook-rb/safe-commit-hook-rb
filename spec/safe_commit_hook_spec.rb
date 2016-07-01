@@ -1,11 +1,13 @@
 require_relative "../safe_commit_hook"
+require "pry"
 
 describe "SafeCommitHook" do
   let(:captured_output) { StringIO.new }
   subject { SafeCommitHook.new(captured_output).run(args, check_patterns) }
   let(:args) { [] }
   let(:check_patterns) { [] }
-  let(:whitelist) { ".ignored_security_risks" }
+  let(:default_whitelist) { ".ignored_security_risks" }
+  let(:whitelist) { "#{repo}/.ignored_security_risks" }
   let(:gem_credential) { "gem/credentials/something.txt" }
 
   let(:repo) { 'fake_git' }
@@ -15,34 +17,46 @@ describe "SafeCommitHook" do
       FileUtils.rm_r(repo)
     end
     FileUtils.mkdir(repo)
-    FileUtils.rm_r(gem_credential.split("/")[0], force: true)
   end
 
-  def create_file_with_name(message)
-    File.open("#{repo}/#{message}", 'w') { |f| f.puts("test file contents") }
+  after do
+    FileUtils.rm_r(repo)
+    `git add -A`
   end
 
-  def create_file_in_path(path)
-    dir = File.dirname(path)
+  def add_to_whitelist(filepath)
+    File.open(whitelist, 'w') { |f| f.puts("#{repo}/#{filepath}") }
+    expect(IO.binread(whitelist)).to include(filepath)
+  end
+
+  def create_unstaged_file(filename)
+    dir = File.dirname(filename)
     FileUtils.mkdir_p(dir)
-    File.new(path, 'w')
+    File.new(filename, 'w')
   end
 
-  def put_in_whitelist(path)
-    `echo #{path} > #{whitelist}`
-    expect(IO.binread(whitelist)).to include(path)
+  def create_staged_file(filename)
+    full_filename = "#{repo}/#{filename}"
+    create_unstaged_file(full_filename)
+    `git add #{full_filename}`
+  end
+
+# TODO
+  describe "check every commit in history, even if the checked in files are gone now" do
   end
 
   describe "with no committed passwords" do
     it "detects no false positives" do
-      create_file_with_name("ok_file.txt")
+      create_staged_file("ok_file.txt")
       expect { subject }.to_not raise_error
     end
   end
 
-  it "does not error when whitelist is missing" do
-    FileUtils.rm_f(whitelist)
-    expect { subject }.to_not raise_error
+  describe "with missing whitelist" do
+    it "does not error when whitelist is missing" do
+      FileUtils.rm_f(whitelist)
+      expect { subject }.to_not raise_error
+    end
   end
 
   describe "with check patterns including filename rsa" do
@@ -56,7 +70,7 @@ describe "SafeCommitHook" do
     describe "with filename including rsa" do
 
       it "returns with exit 1 and prints error" do
-        create_file_with_name("id_rsa")
+        create_staged_file("id_rsa")
         did_exit = false
         begin
           subject
@@ -69,7 +83,7 @@ describe "SafeCommitHook" do
     end
   end
 
-  describe "with regex check pattern for filename" do
+  describe "with regex check pattern for all filenames" do
     let(:check_patterns) { [{
                                 part: "filename",
                                 type: "regex",
@@ -77,8 +91,20 @@ describe "SafeCommitHook" do
                                 caption: "Detected literally everything!",
                                 description: "null"
                             }] }
+
+    it "checks only files that are currently staged" do
+      create_unstaged_file("#{repo}/file1.txt")
+      create_staged_file("file2.txt")
+      begin
+        subject
+      rescue SystemExit
+      end
+      expect(captured_output.string).to match /file2.txt/
+      expect(captured_output.string).to_not match /file1.txt/
+    end
+
     it "detects file with a name that matches the regex" do
-      create_file_with_name("literally-anything")
+      create_staged_file("literally-anything")
       did_exit = false
       begin
         subject
@@ -90,14 +116,16 @@ describe "SafeCommitHook" do
     end
 
     it "accepts whitelisting" do
-      whitelisted_file = "whitelisted_file.txt"
-      create_file_with_name(whitelisted_file)
-      put_in_whitelist("#{repo}/#{whitelisted_file}")
+      ignored_file = "ignored_file.txt"
+      create_staged_file(ignored_file)
+      add_to_whitelist(ignored_file)
+
       begin
         subject
       rescue SystemExit
       end
-      expect(captured_output.string).to_not match /#{whitelisted_file}/
+      p captured_output.string
+      expect(captured_output.string).to_not match /ignored_file/
     end
 
     it "always ignores .git" do
@@ -118,7 +146,7 @@ describe "SafeCommitHook" do
                                 description: "null"
                             }] }
     it "detects file with bad file ending" do
-      create_file_with_name("probably_bad.pem")
+      create_staged_file("probably_bad.pem")
       did_exit = false
       begin
         subject
@@ -130,7 +158,7 @@ describe "SafeCommitHook" do
     end
 
     it "does not detect file with file ending in its name but not actually a bad file ending" do
-      create_file_with_name("pem.notpem")
+      create_staged_file("pem.notpem")
       expect { subject }.to_not raise_error
     end
   end
@@ -145,13 +173,17 @@ describe "SafeCommitHook" do
                             }] }
 
     it "does not falsely detect" do
-      create_file_in_path("gem/foo/credentials/something.txt")
+      create_staged_file("gem/foo/credentials/something.txt")
       expect { subject }.to_not raise_error
     end
 
     context "with bad path" do
+      after do
+        FileUtils.rm_r(gem_credential.split("/")[0], force: true)
+      end
       it "detects bad path" do
-        create_file_in_path(gem_credential)
+        create_unstaged_file(gem_credential)
+        `git add #{gem_credential}`
         did_exit = false
         begin
           subject
