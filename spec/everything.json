@@ -1,0 +1,9 @@
+[
+  {
+    "part": "filename",
+    "type": "regex",
+    "pattern": ".*",
+    "caption": "Detected literally everything!",
+    "description": null
+  }
+]

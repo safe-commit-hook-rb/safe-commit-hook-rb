@@ -1,0 +1,9 @@
+[
+  {
+    "part": "filename",
+    "type": "regex",
+    "pattern": "\\A.*_rsa\\Z",
+    "caption": "Private SSH key",
+    "description": null
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "part": "extension",
+    "type": "match",
+    "pattern": "pem",
+    "caption": "Potential cryptographic private key",
+    "description": null
+  }
+]

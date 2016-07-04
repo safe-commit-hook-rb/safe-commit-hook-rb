@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 class SafeCommitHook
+  require 'json'
   WHITELIST_NAME = ".ignored_security_risks"
 
   def initialize(stdout)
@@ -8,28 +9,27 @@ class SafeCommitHook
     @errors = []
   end
 
-  def run(args, check_patterns)
+  def run(args, check_patterns_file)
     file_basenames = get_file_basenames()
 
-    check_patterns.each do |cp|
-      case cp[:part]
+    check_patterns(check_patterns_file).each do |cp|
+      case cp["part"]
         when "filename"
           file_basenames.each { |filepath, basename|
-            escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
-            match_result = basename =~ Regexp.new(escaped_pattern)
+            match_result = basename =~ Regexp.new(cp["pattern"])
             if match_result == 0
               add_errors(cp, filepath)
             end
           }
         when "extension"
           file_basenames.select { |filepath, basename|
-            if File.extname(basename).gsub(".", "") == cp[:pattern] # this might have to get fancier for regexen
+            if File.extname(basename).gsub(".", "") == cp["pattern"] # this might have to get fancier for regexen
               add_errors(cp, filepath)
             end
           }
         when "path"
           file_basenames.select { |filepath, basename|
-            escaped_pattern = cp[:pattern].gsub('\\', '\\\\')
+            escaped_pattern = cp["pattern"].gsub('\\', '\\\\')
             match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
             if match_result == 0
               add_errors(cp, filepath)
@@ -40,8 +40,12 @@ class SafeCommitHook
     print_errors_and_exit
   end
 
+  def check_patterns(check_patterns_file)
+    JSON.parse(File.read(check_patterns_file))
+  end
+
   def add_errors(cp, filepath)
-    @errors << "#{cp[:caption]} in file #{filepath}"
+    @errors << "#{cp["caption"]} in file #{filepath}"
   end
 
   def print_errors_and_exit
@@ -92,7 +96,6 @@ class SafeCommitHook
 end
 
 if $PROGRAM_NAME == __FILE__
-  require 'json'
-  check_patterns = JSON.parse(File.read("git-deny-patterns.json"))
-  SafeCommitHook.new(STDOUT).run(ARGV, check_patterns)
+  check_patterns_file = ARGV[0] || "git-deny-patterns.json"
+  SafeCommitHook.new(STDOUT).run(ARGV, check_patterns_file)
 end

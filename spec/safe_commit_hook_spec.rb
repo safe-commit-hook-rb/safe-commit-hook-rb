@@ -5,7 +5,7 @@ describe "SafeCommitHook" do
   let(:captured_output) { StringIO.new }
   subject { SafeCommitHook.new(captured_output).run(args, check_patterns) }
   let(:args) { [] }
-  let(:check_patterns) { [] }
+  let(:check_patterns) { "spec/empty.json" }
   let(:default_whitelist) { ".ignored_security_risks" }
   let(:whitelist) { "#{repo}/.ignored_security_risks" }
   let(:gem_credential) { "gem/credentials/something.txt" }
@@ -60,13 +60,7 @@ describe "SafeCommitHook" do
   end
 
   describe "with check patterns including filename rsa" do
-    let(:check_patterns) { [{
-                                "part": "filename",
-                                "type": "regex",
-                                "pattern": "\\A.*_rsa\\Z",
-                                "caption": "Private SSH key",
-                                "description": nil
-                            }] }
+    let(:check_patterns) { "spec/rsa.json" }
     describe "with filename including rsa" do
 
       it "returns with exit 1 and prints error" do
@@ -84,13 +78,7 @@ describe "SafeCommitHook" do
   end
 
   describe "with regex check pattern for all filenames" do
-    let(:check_patterns) { [{
-                                part: "filename",
-                                type: "regex",
-                                pattern: ".*",
-                                caption: "Detected literally everything!",
-                                description: "null"
-                            }] }
+    let(:check_patterns) { "spec/everything.json" }
 
     it "checks only files that are currently staged" do
       create_unstaged_file("#{repo}/file1.txt")
@@ -119,12 +107,10 @@ describe "SafeCommitHook" do
       ignored_file = "ignored_file.txt"
       create_staged_file(ignored_file)
       add_to_whitelist(ignored_file)
-
       begin
         subject
       rescue SystemExit
       end
-      p captured_output.string
       expect(captured_output.string).to_not match /ignored_file/
     end
 
@@ -138,13 +124,7 @@ describe "SafeCommitHook" do
   end
 
   describe "with extensions check pattern" do
-    let(:check_patterns) { [{
-                                part: "extension",
-                                type: "match",
-                                pattern: "pem",
-                                caption: "Potential cryptographic private key",
-                                description: "null"
-                            }] }
+    let(:check_patterns) { "spec/pem_extension.json" }
     it "detects file with bad file ending" do
       create_staged_file("probably_bad.pem")
       did_exit = false
@@ -164,13 +144,7 @@ describe "SafeCommitHook" do
   end
 
   describe "with path check pattern" do
-    let(:check_patterns) { [{
-                                part: "path",
-                                type: "regex",
-                                pattern: '\A\.?gem/credentials\Z',
-                                caption: "Rubygems credentials file",
-                                description: "Might contain API key for a rubygems.org account."
-                            }] }
+    let(:check_patterns) { "spec/path.json" }
 
     it "does not falsely detect" do
       create_staged_file("gem/foo/credentials/something.txt")

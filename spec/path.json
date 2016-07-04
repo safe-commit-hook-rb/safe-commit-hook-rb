@@ -1,0 +1,9 @@
+[
+   {
+    "part": "path",
+    "type": "regex",
+    "pattern": "\\A\\.?gem/credentials\\Z",
+    "caption": "Rubygems credentials file",
+    "description": "Might contain API key for a rubygems.org account."
+  }
+]
