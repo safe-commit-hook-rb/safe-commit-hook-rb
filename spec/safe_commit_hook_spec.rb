@@ -1,4 +1,5 @@
 require_relative "../safe_commit_hook"
+require "pry"
 
 describe "SafeCommitHook" do
   let(:captured_output) { StringIO.new }
@@ -60,11 +61,11 @@ describe "SafeCommitHook" do
 
   describe "with check patterns including filename rsa" do
     let(:check_patterns) { [{
-                                part: "filename",
-                                type: "regex",
-                                pattern: '\A.*_rsa\Z',
-                                caption: "Private SSH key",
-                                description: "null"
+                                "part": "filename",
+                                "type": "regex",
+                                "pattern": "\\A.*_rsa\\Z",
+                                "caption": "Private SSH key",
+                                "description": nil
                             }] }
     describe "with filename including rsa" do
 

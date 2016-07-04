@@ -20,6 +20,7 @@ To use in your project:
 
 ````
 cp safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
+cp git-deny-patterns.json <your-project-path>/.git/hooks/git-deny-patterns.json
 ````
 
 Expected output (for no errors found)
