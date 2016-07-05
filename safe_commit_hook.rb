@@ -40,6 +40,8 @@ class SafeCommitHook
     print_errors_and_exit
   end
 
+  private
+
   def check_patterns(check_patterns_file)
     JSON.parse(File.read(check_patterns_file))
   end
@@ -96,6 +98,6 @@ class SafeCommitHook
 end
 
 if $PROGRAM_NAME == __FILE__
-  check_patterns_file = ARGV[0] || "git-deny-patterns.json"
+  check_patterns_file = ARGV[0] || ".git/hooks/git-deny-patterns.json"
   SafeCommitHook.new(STDOUT).run(ARGV, check_patterns_file)
 end
