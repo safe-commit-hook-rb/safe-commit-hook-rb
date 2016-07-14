@@ -8,7 +8,7 @@ describe "SafeCommitHook" do
   let(:args) { [] }
   let(:check_patterns) { "spec/empty.json" }
   let(:default_whitelist) { ".ignored_security_risks" }
-  let(:whitelist) { "#{repo}/.ignored_security_risks" }
+  let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
   let(:gem_credential) { "gem/credentials/something.txt" }
 
   let(:repo) { 'fake_git' }
@@ -26,7 +26,7 @@ describe "SafeCommitHook" do
   end
 
   def add_to_whitelist(filepath)
-    File.open(whitelist, 'w') { |f| f.puts("#{repo}/#{filepath}") }
+    File.open(whitelist, 'w') { |f| f.puts(filepath) }
     expect(IO.binread(whitelist)).to include(filepath)
   end
 
