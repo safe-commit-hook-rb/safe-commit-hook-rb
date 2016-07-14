@@ -3,7 +3,7 @@ require "pry"
 
 describe "SafeCommitHook" do
   let(:captured_output) { StringIO.new }
-  let(:repo_full_path) { `pwd` + "/#{repo}" }
+  let(:repo_full_path) { `pwd`.strip + "/#{repo}/" }
   subject { SafeCommitHook.new(captured_output).run(repo_full_path, args, check_patterns) }
   let(:args) { [] }
   let(:check_patterns) { "spec/empty.json" }
@@ -18,12 +18,11 @@ describe "SafeCommitHook" do
       FileUtils.rm_r(repo)
     end
     FileUtils.mkdir(repo)
-    # `cd #{repo} && git init`
+    # `cd #{repo_full_path} && git init`
   end
 
   after do
-    FileUtils.rm_r(repo)
-    `git add -A`
+    FileUtils.rm_r(repo_full_path)
   end
 
   def add_to_whitelist(filepath)
@@ -38,20 +37,20 @@ describe "SafeCommitHook" do
   end
 
   def create_staged_file(filename)
-    full_filename = "#{repo}/#{filename}"
+    full_filename = "#{repo_full_path}/#{filename}"
     create_unstaged_file(full_filename)
-    `cd #{repo} && git add #{filename}`
+    `cd #{repo_full_path} && git add #{filename}`
   end
 
   def commit_file(filepath)
     create_staged_file(filepath)
-    `cd #{repo} && git commit -m "commit from test"` # TODO use git gem in tests for better system compatibility
+    `cd #{repo_full_path} && git commit -m "commit from test"` # TODO use git gem in tests for better system compatibility
   end
 
   def commit_removal_of_file(filepath)
-    full_filename = "#{repo}/#{filename}"
+    full_filename = "#{repo_full_path}/#{filename}"
     File.delete(full_filename)
-    `cd #{repo} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
+    `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
   # describe "check every commit in history, even if the checked in files are gone now" do
