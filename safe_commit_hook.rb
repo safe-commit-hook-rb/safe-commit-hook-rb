@@ -99,5 +99,5 @@ end
 
 if $PROGRAM_NAME == __FILE__
   check_patterns_file = ARGV[0] || ".git/hooks/git-deny-patterns.json"
-  SafeCommitHook.new(STDOUT).run(ARGV, check_patterns_file)
+  SafeCommitHook.new(STDOUT).run(`pwd`.strip, ARGV, check_patterns_file)
 end
