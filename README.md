@@ -18,6 +18,13 @@ bundle install
 bundle exec rspec
 ````
 
+To run the end to end test:
+
+````
+cd spec/
+./end_to_end_test.sh # should see the output of the commit hook refusing to commit a bad file
+````
+
 To use in your project:
 
 ````
