@@ -10,21 +10,36 @@ class SafeCommitHook
   end
 
   def run(repo_full_path, args, check_patterns_file)
-    file_basenames = get_file_basenames()
+    patterns = check_patterns(check_patterns_file)
+    whitelisted_files = get_whitelisted_files()
+    if args[0] == "check_full"
+      # #   starting with most recent commit and working backwards,
+      # #     get all file names in each commit
+      # #     check_staged_files(check_patterns_file, file_basenames())
+      # commit_hashes = `git log --pretty=format:%h`.split
+      # commit_hashes.each { |commit_hash|
+      #   files_in_commit = `git diff-tree --no-commit-id --name-only -r #{commit_hash}`.split
+      #   check_staged_files(patterns, file_basenames(files_in_commit, whitelisted_files), commit_hash)
+      # }
+    end
+    check_staged_files(patterns, get_staged_file_basenames(repo_full_path, whitelisted_files), "currently staged files")
+    print_errors_and_exit
+  end
 
-    check_patterns(check_patterns_file).each do |cp|
+  def check_staged_files(check_patterns, file_basenames, commit_hash)
+    check_patterns.each do |cp|
       case cp["part"]
         when "filename"
           file_basenames.each { |filepath, basename|
             match_result = basename =~ Regexp.new(cp["pattern"])
             if match_result == 0
-              add_errors(cp, filepath)
+              add_errors(cp, filepath, commit_hash)
             end
           }
         when "extension"
           file_basenames.select { |filepath, basename|
             if File.extname(basename).gsub(".", "") == cp["pattern"] # this might have to get fancier for regexen
-              add_errors(cp, filepath)
+              add_errors(cp, filepath, commit_hash)
             end
           }
         when "path"
@@ -32,12 +47,11 @@ class SafeCommitHook
             escaped_pattern = cp["pattern"].gsub('\\', '\\\\')
             match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
             if match_result == 0
-              add_errors(cp, filepath)
+              add_errors(cp, filepath, commit_hash)
             end
           }
       end
     end
-    print_errors_and_exit
   end
 
   private
@@ -46,8 +60,8 @@ class SafeCommitHook
     JSON.parse(File.read(check_patterns_file))
   end
 
-  def add_errors(cp, filepath)
-    @errors << "#{cp["caption"]} in file #{filepath}"
+  def add_errors(cp, filepath, commit_hash)
+    @errors << "#{cp["caption"]} in file #{filepath} in commit #{commit_hash}"
   end
 
   def print_errors_and_exit
@@ -66,10 +80,7 @@ class SafeCommitHook
     end
   end
 
-  def get_file_basenames
-    files = `git diff --name-only --cached`.split("\n").select { |e| File.file?(e) }
-    whitelist = whitelisted_files
-
+  def get_file_basenames(files, whitelist)
     files.inject({}) { |agg, fn|
       basename = File::basename(fn)
       agg[fn] = basename
@@ -79,11 +90,16 @@ class SafeCommitHook
     }
   end
 
+  def get_staged_file_basenames(repo_full_path, whitelisted_files)
+    files = `cd #{repo_full_path} && git diff --name-only --cached`.split("\n").select { |e| File.file?(e) }
+    get_file_basenames(files, whitelisted_files)
+  end
+
   def is_git_file?(filepath)
     filepath.split("/")[0] == ".git"
   end
 
-  def whitelisted_files
+  def get_whitelisted_files
     whitelists = Dir.glob("**/*", File::FNM_DOTMATCH).select { |f| f.include?(WHITELIST_NAME) }
     files = []
     if whitelists == []
