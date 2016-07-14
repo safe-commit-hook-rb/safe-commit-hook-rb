@@ -10,7 +10,7 @@ class SafeCommitHook
   end
 
   def run(repo_full_path, args, check_patterns_file)
-    file_basenames = get_file_basenames()
+    file_basenames = get_file_basenames(repo_full_path)
 
     check_patterns(check_patterns_file).each do |cp|
       case cp["part"]
@@ -66,8 +66,8 @@ class SafeCommitHook
     end
   end
 
-  def get_file_basenames
-    files = `git diff --name-only --cached`.split("\n").select { |e| File.file?(e) }
+  def get_file_basenames(repo_full_path)
+    files = `cd #{repo_full_path} && git diff --name-only --cached`.split("\n")
     whitelist = whitelisted_files
 
     files.inject({}) { |agg, fn|
