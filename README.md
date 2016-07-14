@@ -38,7 +38,7 @@ Expected output (for no errors found)
 safe-commit-hook check looks clean. See ignored files in .ignored_security_risks
 ````
 
-Expected outpug (for error found)
+Expected output (for error found)
 
 ````
 [ERROR] Unable to complete git commit.
