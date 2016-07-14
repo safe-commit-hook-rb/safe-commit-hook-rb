@@ -5,6 +5,8 @@ Purpose:
 
 Prevent the accidental check-in of passwords and API keys etc
 
+This tool will not keep you safe. It will just remind you to not shoot yourself in the foot sometimes. I am not a security professional. Be skeptical.
+
 Based on https://github.com/jandre/safe-commit-hook and inspired by https://github.com/michenriksen/gitrob and https://github.com/thoughtworks/talisman
 
 
@@ -44,6 +46,8 @@ This is intentionally all one ruby file with no dependencies, so that it will be
 
 The check patterns are directly taken from [jandre/safe-commit-hook](https://github.com/jandre/safe-commit-hook) which itself takes from [git-rob](https://github.com/michenriksen/gitrob). I currently have no strategy to pull updates from "upstream".
 
-The generated file .ignored_security_risks is supposed to be checked in. The scary name is on purpose.
+The generated file .ignored_security_risks is supposed to be checked into your repository. The scary name is on purpose.
+
+This tool currently does not work on windows. It has been tested on OSX. It might work on *nix.
 
 Pull requests are very welcome.
