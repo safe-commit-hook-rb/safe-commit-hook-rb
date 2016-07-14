@@ -196,12 +196,8 @@ describe "SafeCommitHook" do
     end
 
     context "with bad path" do
-      after do
-        FileUtils.rm_r(gem_credential.split("/")[0], force: true)
-      end
       it "detects bad path" do
-        create_unstaged_file(gem_credential)
-        `git add #{gem_credential}`
+        create_staged_file(gem_credential)
         did_exit = false
         begin
           subject
