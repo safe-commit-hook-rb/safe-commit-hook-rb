@@ -9,7 +9,7 @@ class SafeCommitHook
     @errors = []
   end
 
-  def run(args, check_patterns_file)
+  def run(repo_full_path, args, check_patterns_file)
     file_basenames = get_file_basenames()
 
     check_patterns(check_patterns_file).each do |cp|
