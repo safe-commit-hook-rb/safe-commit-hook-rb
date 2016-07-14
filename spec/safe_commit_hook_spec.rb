@@ -18,7 +18,7 @@ describe "SafeCommitHook" do
       FileUtils.rm_r(repo)
     end
     FileUtils.mkdir(repo)
-    `cd #{repo} && git init`
+    # `cd #{repo} && git init`
   end
 
   after do
