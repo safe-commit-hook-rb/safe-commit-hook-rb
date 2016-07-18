@@ -53,6 +53,12 @@ describe "SafeCommitHook" do
     `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
+  describe "search all changed files for suspicious strings" do
+    it "finds password assignment"
+    it "finds high entrupy strings"
+    it "finds RSA key header"
+  end
+
   describe "check every commit in history, even if the checked in files are gone now" do
     let(:args) { ["check_full"] }
     let(:check_patterns) { "spec/file_removed_in_previous_commit.json" }
