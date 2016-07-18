@@ -9,10 +9,28 @@ class SafeCommitHook
     @errors = []
   end
 
-  def run(repo_full_path, args, check_patterns_file)
-    file_basenames = get_file_basenames(repo_full_path)
+  def run(repo_full_path, check_all_commits, check_patterns_file)
+    check_patterns = check_patterns(check_patterns_file)
+    whitelist = whitelisted_files
+    if check_all_commits
+      check_all_commits(check_patterns, repo_full_path, whitelist)
+    end
+    staged_file_basenames = get_staged_file_basenames(repo_full_path, whitelist)
+    check_files(check_patterns, staged_file_basenames)
+    print_errors_and_exit
+  end
 
-    check_patterns(check_patterns_file).each do |cp|
+  def check_all_commits(check_patterns, repo_full_path, whitelist)
+    commit_hashes = `cd #{repo_full_path} && git log --pretty=format:%h`.split
+    commit_hashes.each { |commit_hash|
+      files = `cd #{repo_full_path} && git show --pretty="" --name-only -r #{commit_hash}`.split
+      commit_files_basenames = basenames(files, whitelist)
+      check_files(check_patterns, commit_files_basenames)
+    }
+  end
+
+  def check_files(check_patterns, file_basenames)
+    check_patterns.each do |cp|
       case cp["part"]
         when "filename"
           file_basenames.each { |filepath, basename|
@@ -37,7 +55,6 @@ class SafeCommitHook
           }
       end
     end
-    print_errors_and_exit
   end
 
   private
@@ -66,10 +83,12 @@ class SafeCommitHook
     end
   end
 
-  def get_file_basenames(repo_full_path)
+  def get_staged_file_basenames(repo_full_path, whitelist)
     files = `cd #{repo_full_path} && git diff --name-only --cached`.split("\n")
-    whitelist = whitelisted_files
+    basenames(files, whitelist)
+  end
 
+  def basenames(files, whitelist)
     files.inject({}) { |agg, fn|
       basename = File::basename(fn)
       agg[fn] = basename
@@ -98,6 +117,7 @@ class SafeCommitHook
 end
 
 if $PROGRAM_NAME == __FILE__
-  check_patterns_file = ARGV[0] || ".git/hooks/git-deny-patterns.json"
-  SafeCommitHook.new(STDOUT).run(`pwd`.strip, ARGV, check_patterns_file)
+  check_patterns_file = ENV["GIT_DENY_PATTERNS"] || ".git/hooks/git-deny-patterns.json"
+  check_all_commits = ENV["CHECK_ALL_COMMITS"]
+  SafeCommitHook.new(STDOUT).run(`pwd`.strip, check_all_commits, check_patterns_file)
 end

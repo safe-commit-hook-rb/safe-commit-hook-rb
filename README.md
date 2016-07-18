@@ -58,3 +58,11 @@ The generated file .ignored_security_risks is supposed to be checked into your r
 This tool currently does not work on windows. It has been tested on OSX. It might work on *nix.
 
 Pull requests are very welcome.
+
+### TODO
+
+optional(?) file text search for:
+
+- entropy (tokenize the file, pick out all the things that only occur once, and then do a frequency count on the characters. If it is obviously not English, or is relatively flat, and is at least some number of characters long, it's probably a key or compressed file or random)
+- suspicious strings like "BEGIN RSA PRIVATE KEY"
+

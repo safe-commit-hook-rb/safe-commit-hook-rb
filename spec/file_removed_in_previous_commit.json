@@ -4,6 +4,6 @@
     "type": "regex",
     "pattern": ".*test_file_removed_in_previous_commit.txt",
     "caption": "File removed in previous commit",
-    "description": null
+    "description": "null"
   }
 ]

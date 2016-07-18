@@ -53,41 +53,41 @@ describe "SafeCommitHook" do
     `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
-  # describe "check every commit in history, even if the checked in files are gone now" do
-  #   let(:args) { ["check_full"] }
-  #   let(:check_patterns) { "spec/file_removed_in_previous_commit.json" }
-  #   # let(:check_patterns) { "spec/rsa.json" }
-  #   let(:filename) { "test_file_removed_in_previous_commit.txt" }
+  describe "check every commit in history, even if the checked in files are gone now" do
+    let(:args) { ["check_full"] }
+    let(:check_patterns) { "spec/file_removed_in_previous_commit.json" }
+    # let(:check_patterns) { "spec/rsa.json" }
+    let(:filename) { "test_file_removed_in_previous_commit.txt" }
 
-  #   it "does not see file that has never been committed" do
-  #     expect { subject }.to_not raise_error
-  #   end
+    it "does not see file that has never been committed" do
+      expect { subject }.to_not raise_error
+    end
 
-  #   it "sees file that has been committed and is still present" do
-  #     commit_file(filename)
-  #     did_exit = false
-  #     begin
-  #       subject
-  #     rescue SystemExit
-  #       did_exit = true
-  #     end
-  #     expect(captured_output.string).to match /File removed in previous commit in file #{filename}/
-  #     expect(did_exit).to be true
-  #   end
+    it "sees file that has been committed and is still present" do
+      commit_file(filename)
+      did_exit = false
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /File removed in previous commit in file #{filename}/
+      expect(did_exit).to be true
+    end
 
-  #   it "sees file that has been committed and removed" do
-  #     commit_file(filename)
-  #     commit_removal_of_file(filename)
-  #     did_exit = false
-  #     begin
-  #       subject
-  #     rescue SystemExit
-  #       did_exit = true
-  #     end
-  #     expect(captured_output.string).to match /File removed in previous commit in file #{filename}/
-  #     expect(did_exit).to be true
-  #   end
-  # end
+    it "sees file that has been committed and removed" do
+      commit_file(filename)
+      commit_removal_of_file(filename)
+      did_exit = false
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /File removed in previous commit in file #{filename}/
+      expect(did_exit).to be true
+    end
+  end
 
   describe "with no committed passwords" do
     it "detects no false positives" do
