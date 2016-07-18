@@ -32,6 +32,11 @@ cp safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
 cp git-deny-patterns.json <your-project-path>/.git/hooks/git-deny-patterns.json
 ````
 
+To check all commits for bad checked-in files:
+````
+CHECK_ALL_COMMITS=true git commit -m "my commit message"
+````
+
 Expected output (for no errors found)
 
 ````
