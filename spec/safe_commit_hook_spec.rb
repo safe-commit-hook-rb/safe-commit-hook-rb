@@ -71,7 +71,7 @@ describe "SafeCommitHook" do
       rescue SystemExit
         did_exit = true
       end
-      expect(captured_output.string).to match /File removed in previous commit in file #{filename}/
+      expect(captured_output.string).to match /File removed in previous commit .* in file #{filename}/
       expect(did_exit).to be true
     end
 
@@ -84,7 +84,7 @@ describe "SafeCommitHook" do
       rescue SystemExit
         did_exit = true
       end
-      expect(captured_output.string).to match /File removed in previous commit in file #{filename}/
+      expect(captured_output.string).to match /File removed in previous commit .* in file #{filename}/
       expect(did_exit).to be true
     end
   end
@@ -115,7 +115,7 @@ describe "SafeCommitHook" do
         rescue SystemExit
           did_exit = true
         end
-        expect(captured_output.string).to match /Private SSH key in file .*id_rsa/
+        expect(captured_output.string).to match /Private SSH key .* in file .*id_rsa/
         expect(did_exit).to be true
       end
     end
@@ -177,7 +177,7 @@ describe "SafeCommitHook" do
       rescue SystemExit
         did_exit = true
       end
-      expect(captured_output.string).to match /Potential cryptographic private key in file .*probably_bad.pem/
+      expect(captured_output.string).to match /Potential cryptographic private key .* in file .*probably_bad.pem/
       expect(did_exit).to be true
     end
 
@@ -204,7 +204,7 @@ describe "SafeCommitHook" do
         rescue SystemExit
           did_exit = true
         end
-        expect(captured_output.string).to match /Rubygems credentials file in file gem\/credentials\/something.txt/
+        expect(captured_output.string).to match /Rubygems credentials file .* in file gem\/credentials\/something.txt/
         expect(did_exit).to be true
       end
     end

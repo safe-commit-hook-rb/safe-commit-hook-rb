@@ -16,33 +16,33 @@ class SafeCommitHook
       check_all_commits(check_patterns, repo_full_path, whitelist)
     end
     staged_file_basenames = get_staged_file_basenames(repo_full_path, whitelist)
-    check_files(check_patterns, staged_file_basenames)
+    check_files(check_patterns, staged_file_basenames, "currently staged files")
     print_errors_and_exit
   end
 
   def check_all_commits(check_patterns, repo_full_path, whitelist)
-    commit_hashes = `cd #{repo_full_path} && git log --pretty=format:%h`.split
+    commit_hashes = `cd #{repo_full_path} && git log --pretty=format:%h 2>/dev/null`.split # swallow no-commits-yet error
     commit_hashes.each { |commit_hash|
       files = `cd #{repo_full_path} && git show --pretty="" --name-only -r #{commit_hash}`.split
       commit_files_basenames = basenames(files, whitelist)
-      check_files(check_patterns, commit_files_basenames)
+      check_files(check_patterns, commit_files_basenames, commit_hash)
     }
   end
 
-  def check_files(check_patterns, file_basenames)
+  def check_files(check_patterns, file_basenames, commit_hash)
     check_patterns.each do |cp|
       case cp["part"]
         when "filename"
           file_basenames.each { |filepath, basename|
             match_result = basename =~ Regexp.new(cp["pattern"])
             if match_result == 0
-              add_errors(cp, filepath)
+              add_errors(cp, filepath, commit_hash)
             end
           }
         when "extension"
           file_basenames.select { |filepath, basename|
             if File.extname(basename).gsub(".", "") == cp["pattern"] # this might have to get fancier for regexen
-              add_errors(cp, filepath)
+              add_errors(cp, filepath, commit_hash)
             end
           }
         when "path"
@@ -50,7 +50,7 @@ class SafeCommitHook
             escaped_pattern = cp["pattern"].gsub('\\', '\\\\')
             match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
             if match_result == 0
-              add_errors(cp, filepath)
+              add_errors(cp, filepath, commit_hash)
             end
           }
       end
@@ -63,8 +63,8 @@ class SafeCommitHook
     JSON.parse(File.read(check_patterns_file))
   end
 
-  def add_errors(cp, filepath)
-    @errors << "#{cp["caption"]} in file #{filepath}"
+  def add_errors(cp, filepath, commit_hash)
+    @errors << "#{cp["caption"]} in commit #{commit_hash} in file #{filepath}"
   end
 
   def print_errors_and_exit
