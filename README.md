@@ -71,3 +71,6 @@ optional(?) file text search for:
 - entropy (tokenize the file, pick out all the things that only occur once, and then do a frequency count on the characters. If it is obviously not English, or is relatively flat, and is at least some number of characters long, it's probably a key or compressed file or random)
 - suspicious strings like "BEGIN RSA PRIVATE KEY"
 
+### Contributing
+
+Pull requests are welcome. I don't promise to merge them. Tests are good. :)
