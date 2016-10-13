@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/compwron/safe-commit-hook-rb.svg)](https://travis-ci.org/compwron/safe-commit-hook-rb)
+[![Build Status](https://travis-ci.org/safe-commit-hook-rb/safe-commit-hook-rb.svg)](https://travis-ci.org/safe-commit-hook-rb/safe-commit-hook-rb)
 
 Purpose:
 --------
