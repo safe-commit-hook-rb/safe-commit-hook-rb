@@ -48,7 +48,9 @@ describe "SafeCommitHook" do
   def commit_removal_of_file(filepath)
     full_filename = "#{repo_full_path}/#{filename}"
     File.delete(full_filename)
-    `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
+
+    # TODO find out why the removal of this line does not make any tests fail
+    # `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
   describe "search all changed files for suspicious strings" do
