@@ -1,23 +1,22 @@
 require "spec_helper"
 
 describe "SafeCommitHook" do
+  subject { SafeCommitHook.new(captured_output).run(repo_full_path, args, check_patterns) }
   let(:captured_output) { StringIO.new }
   let(:repo_full_path) { `pwd`.strip + "/#{repo}/" }
-  subject { SafeCommitHook.new(captured_output).run(repo_full_path, args, check_patterns) }
   let(:args) { [] }
   let(:check_patterns) { "spec/empty.json" }
+
   let(:default_whitelist) { ".ignored_security_risks" }
   let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
   let(:gem_credential) { "gem/credentials/something.txt" }
-
   let(:repo) { 'fake_git' }
 
   before do
-    if Dir.exists?(repo)
-      FileUtils.rm_r(repo)
-    end
+    FileUtils.rm_r(repo) if Dir.exists?(repo)
     FileUtils.mkdir(repo)
-    `cd #{repo_full_path} && git init`
+    Git.init(repo_full_path)
+    # `cd #{repo_full_path} && git init`
   end
 
   after do
