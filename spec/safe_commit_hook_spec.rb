@@ -42,7 +42,7 @@ describe "SafeCommitHook" do
 
   def commit_file(filepath)
     create_staged_file(filepath)
-    `cd #{repo_full_path} && git commit -m "commit from test"` # TODO use git gem in tests for better system compatibility
+    @g.commit("commit from test")
   end
 
   def commit_removal_of_file(filepath)
