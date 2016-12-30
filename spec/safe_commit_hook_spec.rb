@@ -11,12 +11,12 @@ describe "SafeCommitHook" do
   let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
   let(:gem_credential) { "gem/credentials/something.txt" }
   let(:repo) { 'fake_git' }
+  @g = nil # git repo refreshed for each test
 
   before do
     FileUtils.rm_r(repo) if Dir.exists?(repo)
     FileUtils.mkdir(repo)
-    Git.init(repo_full_path)
-    # `cd #{repo_full_path} && git init`
+    @g = Git.init(repo_full_path)
   end
 
   after do
@@ -37,7 +37,7 @@ describe "SafeCommitHook" do
   def create_staged_file(filename)
     full_filename = "#{repo_full_path}/#{filename}"
     create_unstaged_file(full_filename)
-    `cd #{repo_full_path} && git add #{filename}`
+    @g.add(filename)
   end
 
   def commit_file(filepath)
