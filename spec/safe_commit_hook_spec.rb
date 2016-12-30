@@ -1,5 +1,4 @@
-require_relative "../safe_commit_hook"
-require "pry"
+require "spec_helper"
 
 describe "SafeCommitHook" do
   let(:captured_output) { StringIO.new }
