@@ -1,14 +1,13 @@
-require_relative "../safe_commit_hook"
-require "pry"
+require "spec_helper"
 
 describe "SafeCommitHook" do
   let(:captured_output) { StringIO.new }
-  let(:repo_full_path) { `pwd`.strip + "/#{repo}/" }
+  let(:repo_full_path) { `pwd`.strip + "/" + repo + "/" }
   subject { SafeCommitHook.new(captured_output).run(repo_full_path, args, check_patterns) }
   let(:args) { [] }
   let(:check_patterns) { "spec/empty.json" }
   let(:default_whitelist) { ".ignored_security_risks" }
-  let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
+  let(:whitelist) { repo_full_path + ".ignored_security_risks" }
   let(:gem_credential) { "gem/credentials/something.txt" }
 
   let(:repo) { 'fake_git' }
@@ -30,10 +29,12 @@ describe "SafeCommitHook" do
     expect(IO.binread(whitelist)).to include(filepath)
   end
 
-  def create_unstaged_file(filename)
+  def create_unstaged_file(filename, contents="")
     dir = File.dirname(filename)
     FileUtils.mkdir_p(dir)
-    File.new(filename, 'w')
+    f = File.new(filename, 'w')
+    f.write(contents)
+    f.close
   end
 
   def create_staged_file(filename)
@@ -42,21 +43,46 @@ describe "SafeCommitHook" do
     `cd #{repo_full_path} && git add #{filename}`
   end
 
-  def commit_file(filepath)
-    create_staged_file(filepath)
+  def commit_file(filename)
+    create_staged_file(filename)
     `cd #{repo_full_path} && git commit -m "commit from test"` # TODO use git gem in tests for better system compatibility
   end
 
-  def commit_removal_of_file(filepath)
+  def commit_removal_of_file(filename)
     full_filename = "#{repo_full_path}/#{filename}"
     File.delete(full_filename)
     `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
+  def create_staged_file_with_contents(filename, contents)
+    full_filename = "#{repo_full_path}/#{filename}"
+    create_unstaged_file(full_filename, contents)
+    `cd #{repo_full_path} && git add #{filename}`
+  end
+
   describe "search all changed files for suspicious strings" do
-    it "finds password assignment"
-    it "finds high entrupy strings"
+    let(:args) { ["filecontent_search"] }
+    it "finds password assignment" do
+      create_staged_file_with_contents("foo.txt", "password = \"abcd123\"")
+      did_exit = false
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /Bad string 'password' found .* in file foo.txt/
+      expect(did_exit).to be true
+    end
+
+    it "finds high entropy strings"
     it "finds RSA key header"
+
+    describe "with whitelist" do
+      let(:ignored_file) { "ignored_file.txt" }
+      it "whitelists file contents by string" do
+        add_file_with_contents_to_whitelist(ignored_file)
+      end
+    end
   end
 
   describe "check every commit in history, even if the checked in files are gone now" do
@@ -139,6 +165,15 @@ describe "SafeCommitHook" do
       end
       expect(captured_output.string).to match /file2.txt/
       expect(captured_output.string).to_not match /file1.txt/
+    end
+
+    it "prints error message including commit status" do
+      create_staged_file("file.txt")
+      begin
+        subject
+      rescue SystemExit
+      end
+      expect(captured_output.string).to match /in commit currently staged files/
     end
 
     it "detects file with a name that matches the regex" do
