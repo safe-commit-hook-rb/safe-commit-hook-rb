@@ -3,39 +3,21 @@
 class SafeCommitHook
   require 'json'
   WHITELIST_NAME = ".ignored_security_risks"
-  CURRENTLY_STAGED = "currently staged files"
 
   def initialize(stdout)
     $stdout = stdout
     @errors = []
   end
 
-  def run(repo_full_path, should_check_all_commits, check_patterns_file)
+  def run(repo_full_path, check_all_commits, check_patterns_file)
     check_patterns = check_patterns(check_patterns_file)
     whitelist = whitelisted_files
-    if should_check_all_commits
+    if check_all_commits
       check_all_commits(check_patterns, repo_full_path, whitelist)
     end
     staged_file_basenames = get_staged_file_basenames(repo_full_path, whitelist)
-    check_files(check_patterns, staged_file_basenames, CURRENTLY_STAGED)
-    check_file_contents(file_content_patterns, staged_file_basenames)
+    check_files(check_patterns, staged_file_basenames, "currently staged files")
     print_errors_and_exit
-  end
-
-  def file_content_patterns
-    ['password']
-  end
-
-  def check_file_contents(check_patterns, file_basenames)
-    file_basenames.each { |filepath, basename|
-      File.readlines(filepath).each_with_index.map { |line, idx|
-        check_patterns.each { |cp|
-          if (line.include?(cp)) then
-            add_errors(cp, filepath + " line: " + idx, CURRENTLY_STAGED)
-          end
-        }
-      }
-    }
   end
 
   def check_all_commits(check_patterns, repo_full_path, whitelist)
