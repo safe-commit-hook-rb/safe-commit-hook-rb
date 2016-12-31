@@ -10,28 +10,7 @@ This tool will not keep you safe. It will just remind you to not shoot yourself 
 Based on https://github.com/jandre/safe-commit-hook and inspired by https://github.com/michenriksen/gitrob and https://github.com/thoughtworks/talisman
 
 
-To run the tests:
-
-````
-gem install bundler # first time only
-bundle install
-bundle exec rspec
-````
-
-To see test coverage:
-````
-rspec
-open coverage/index.html
-````
-
-To run the end to end test:
-
-````
-cd spec/
-./end_to_end_test.sh # should see the output of the commit hook refusing to commit a bad file
-````
-
-To use in your project:
+## Usage:
 
 ````
 cp safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
@@ -57,6 +36,30 @@ See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for
 Add full filepath to .ignored_security_risks to ignore
 Potential cryptographic private key in file foo.pem
 ````
+
+## Development:
+
+To run the tests:
+
+````
+gem install bundler # first time only
+bundle install # first time only
+bundle exec rspec
+````
+
+To see test coverage:
+````
+rspec
+open coverage/index.html
+````
+
+To run the end to end test:
+
+````
+cd spec/
+./end_to_end_test.sh # should see the output of the commit hook refusing to commit a bad file
+````
+
 
 ### Design notes
 

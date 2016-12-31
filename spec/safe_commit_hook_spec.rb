@@ -11,7 +11,7 @@ describe SafeCommitHook do
   let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
   let(:gem_credential) { 'gem/credentials/something.txt' }
   let(:repo) { 'fake_git' }
-  @g = nil # git repo refreshed for each test
+  @g = nil # refresh git repo for each test
 
   before do
     FileUtils.rm_r(repo) if Dir.exists?(repo)
