@@ -14,6 +14,8 @@ class SafeCommitHook
     print_errors_and_exit
   end
 
+  private
+
   def check(check_all_commits, check_patterns, repo_full_path, whitelist)
     if check_all_commits
       check_all_commits(check_patterns, repo_full_path, whitelist)
@@ -45,17 +47,20 @@ class SafeCommitHook
   end
 
   def check_path_pattern(check_pattern, commit_hash, file_basenames)
-    file_basenames.select { |filepath, _|
+    file_basenames.each { |filepath, _|
       escaped_pattern = check_pattern['pattern'].gsub('\\', '\\\\')
-      match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
-      if match_result == 0
+      if found_match(File.dirname(filepath) =~ Regexp.new(escaped_pattern))
         add_errors(check_pattern, filepath, commit_hash)
       end
     }
   end
 
+  def found_match(match_result)
+    match_result == 0
+  end
+
   def check_extension_pattern(check_pattern, commit_hash, file_basenames)
-    file_basenames.select { |filepath, basename|
+    file_basenames.each { |filepath, basename|
       if File.extname(basename).gsub('.', '') == check_pattern['pattern'] # this might have to get fancier for regexen
         add_errors(check_pattern, filepath, commit_hash)
       end
@@ -64,14 +69,11 @@ class SafeCommitHook
 
   def check_filename_pattern(check_pattern, commit_hash, file_basenames)
     file_basenames.each { |filepath, basename|
-      match_result = basename =~ Regexp.new(check_pattern['pattern'])
-      if match_result == 0
+      if found_match(basename =~ Regexp.new(check_pattern['pattern']))
         add_errors(check_pattern, filepath, commit_hash)
       end
     }
   end
-
-  private
 
   def check_patterns(check_patterns_file)
     JSON.parse(File.read(check_patterns_file))
