@@ -20,7 +20,7 @@ class SafeCommitHook
     if check_all_commits
       check_all_commits(check_patterns, repo_full_path, whitelist)
     end
-    check_files(check_patterns, get_staged_file_basenames(repo_full_path, whitelist), 'currently staged files')
+    check_files(check_patterns, staged_file_basenames(repo_full_path, whitelist), 'currently staged files')
   end
 
   def check_all_commits(check_patterns, repo_full_path, whitelist)
@@ -99,7 +99,7 @@ class SafeCommitHook
     end
   end
 
-  def get_staged_file_basenames(repo_full_path, whitelist)
+  def staged_file_basenames(repo_full_path, whitelist)
     files = `cd #{repo_full_path} && git diff --name-only --cached`.split("\n")
     basenames(files, whitelist)
   end
