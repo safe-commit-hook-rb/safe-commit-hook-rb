@@ -1,28 +1,29 @@
 require 'spec_helper'
 
 describe SafeCommitHook do
-  subject { SafeCommitHook.new(captured_output).run(repo_full_path, args, check_patterns) }
+  subject { SafeCommitHook.new(captured_output).run(@repo_full_path, args, check_patterns) }
   let(:captured_output) { StringIO.new }
-  let(:repo_full_path) { `pwd`.strip + "/#{repo}/" }
   let(:args) { [] }
   let(:check_patterns) { 'spec/empty.json' }
 
   let(:default_whitelist) { '.ignored_security_risks' }
-  let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
+  let(:whitelist) { "#{@repo_full_path}/.ignored_security_risks" }
   let(:gem_credential) { 'gem/credentials/something.txt' }
   let(:repo) { 'fake_git' }
   @g = nil # refresh git repo for each test
+  @repo_full_path = nil # run every test in a different repo so that rspec-mutant can run in many forks
 
   before do
     FileUtils.rm_r(repo) if Dir.exists?(repo)
     FileUtils.mkdir(repo)
-    @g = Git.init(repo_full_path)
+    @repo_full_path = `pwd`.strip + "/#{repo}/" + SecureRandom.uuid.to_s # run every test in a different repo so that rspec-mutant can run in many forks
+    @g = Git.init(@repo_full_path)
     @g.config('user.name', 'safe-commit-hook-rb')
     @g.config('user.email', 'safe-commit-hook-rb@example.com')
   end
 
   after do
-    FileUtils.rm_r(repo_full_path)
+    FileUtils.rm_r(@repo_full_path)
   end
 
   def add_to_whitelist(filepath)
@@ -37,7 +38,7 @@ describe SafeCommitHook do
   end
 
   def create_staged_file(filename)
-    full_filename = "#{repo_full_path}/#{filename}"
+    full_filename = "#{@repo_full_path}/#{filename}"
     create_unstaged_file(full_filename)
     @g.add(filename)
   end
@@ -48,11 +49,11 @@ describe SafeCommitHook do
   end
 
   def commit_removal_of_file(filepath) # TODO what is even happening here
-    full_filename = "#{repo_full_path}/#{filename}"
+    full_filename = "#{@repo_full_path}/#{filename}"
     File.delete(full_filename)
 
     # TODO find out why the removal of this line does not make any tests fail
-    # `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
+    # `cd #{@repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
   describe 'search all changed files for suspicious strings' do

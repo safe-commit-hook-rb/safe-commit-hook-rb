@@ -87,6 +87,7 @@ optional(?) file text search for:
 
 - entropy (tokenize the file, pick out all the things that only occur once, and then do a frequency count on the characters. If it is obviously not English, or is relatively flat, and is at least some number of characters long, it's probably a key or compressed file or random)
 - suspicious strings like "BEGIN RSA PRIVATE KEY"
+- ignore specific files only in specific commits, like "lib/id_rsa 2ba492d " 
 
 ### Contributing
 

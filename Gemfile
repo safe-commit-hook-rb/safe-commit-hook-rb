@@ -6,4 +6,5 @@ group :test, :development do
   gem "pry"
   gem "pry-coolline" # allows pry to work without recompiling ruby --with-readlines
   gem 'simplecov'
+  gem 'mutant-rspec'
 end
