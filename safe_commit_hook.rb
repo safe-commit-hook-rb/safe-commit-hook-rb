@@ -25,8 +25,7 @@ class SafeCommitHook
     commit_hashes = `cd #{repo_full_path} && git log --pretty=format:%h 2>/dev/null`.split # swallow no-commits-yet error
     commit_hashes.each { |commit_hash|
       files = `cd #{repo_full_path} && git show --pretty="" --name-only -r #{commit_hash}`.split
-      commit_files_basenames = basenames(files, whitelist)
-      check_files(check_patterns, commit_files_basenames, commit_hash)
+      check_files(check_patterns, basenames(files, whitelist), commit_hash)
     }
   end
 
@@ -92,10 +91,9 @@ class SafeCommitHook
   end
 
   def basenames(files, whitelist)
-    files.inject({}) { |agg, fn|
-      basename = File::basename(fn)
-      agg[fn] = basename
-      agg
+    files.inject({}) { |aggregator, filename|
+      aggregator[filename] = File::basename(filename)
+      aggregator
     }.reject { |filepath, _|
       is_git_file?(filepath) || whitelist.include?(filepath)
     }
@@ -120,7 +118,7 @@ class SafeCommitHook
 end
 
 if $PROGRAM_NAME == __FILE__
-  check_patterns_file = ENV['GIT_DENY_PATTERNS'] || '.git/hooks/git-deny-patterns.json'
   check_all_commits = ENV['CHECK_ALL_COMMITS']
+  check_patterns_file = ENV['GIT_DENY_PATTERNS'] || '.git/hooks/git-deny-patterns.json'
   SafeCommitHook.new(STDOUT).run(`pwd`.strip, check_all_commits, check_patterns_file)
 end
