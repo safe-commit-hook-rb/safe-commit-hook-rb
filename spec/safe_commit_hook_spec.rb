@@ -17,6 +17,8 @@ describe "SafeCommitHook" do
     FileUtils.rm_r(repo) if Dir.exists?(repo)
     FileUtils.mkdir(repo)
     @g = Git.init(repo_full_path)
+    @g.config('user.name', 'safe-commit-hook-rb')
+    @g.config('user.email', 'safe-commit-hook-rb@example.com')
   end
 
   after do
