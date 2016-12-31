@@ -13,7 +13,7 @@ Based on https://github.com/jandre/safe-commit-hook and inspired by https://gith
 ## Usage:
 
 ````
-cp safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
+cp lib/safe_commit_hook.rb <your-project-path>/.git/hooks/pre-commit
 cp git-deny-patterns.json <your-project-path>/.git/hooks/git-deny-patterns.json
 ````
 

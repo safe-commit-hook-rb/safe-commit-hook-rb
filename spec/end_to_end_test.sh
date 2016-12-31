@@ -10,7 +10,7 @@ git status
 touch foo.txt
 git add foo.txt
 git commit -m "File foo"
-cp ../../safe_commit_hook.rb .git/hooks/pre-commit
+cp ../../lib/safe_commit_hook.rb .git/hooks/pre-commit
 cp ../../git-deny-patterns.json .git/hooks/git-deny-patterns.json
 touch id_rsa
 git add id_rsa
