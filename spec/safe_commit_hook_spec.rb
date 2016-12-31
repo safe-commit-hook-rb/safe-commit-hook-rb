@@ -58,7 +58,7 @@ describe SafeCommitHook do
 
   describe 'search all changed files for suspicious strings' do
     it 'finds password assignment'
-    it 'finds high entrupy strings'
+    it 'finds high entropy strings'
     it 'finds RSA key header'
   end
 
