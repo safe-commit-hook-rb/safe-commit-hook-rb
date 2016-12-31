@@ -18,6 +18,12 @@ bundle install
 bundle exec rspec
 ````
 
+To see test coverage:
+````
+rspec
+open coverage/index.html
+````
+
 To run the end to end test:
 
 ````

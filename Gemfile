@@ -5,4 +5,5 @@ group :test, :development do
   gem "git"
   gem "pry"
   gem "pry-coolline" # allows pry to work without recompiling ruby --with-readlines
+  gem 'simplecov'
 end
