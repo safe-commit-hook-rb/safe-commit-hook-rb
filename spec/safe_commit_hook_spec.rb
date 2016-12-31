@@ -61,6 +61,13 @@ describe SafeCommitHook do
     it 'finds RSA key header'
   end
 
+  describe 'when there are no bad files' do
+    it 'outputs reassuring informational message' do
+      subject
+      expect(captured_output.string).to eq 'safe-commit-hook check looks clean. See ignored files in .ignored_security_risks'
+    end
+  end
+
   describe 'check every commit in history, even if the checked in files are gone now' do
     let(:args) { ['check_full'] }
     let(:check_patterns) { 'spec/file_removed_in_previous_commit.json' }

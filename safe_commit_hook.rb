@@ -30,33 +30,45 @@ class SafeCommitHook
   end
 
   def check_files(check_patterns, file_basenames, commit_hash)
-    check_patterns.each do |cp|
-      case cp['part']
+    check_patterns.each do |check_pattern|
+      case check_pattern['part']
         when 'filename'
-          file_basenames.each { |filepath, basename|
-            match_result = basename =~ Regexp.new(cp['pattern'])
-            if match_result == 0
-              add_errors(cp, filepath, commit_hash)
-            end
-          }
+          check_filename_pattern(check_pattern, commit_hash, file_basenames)
         when 'extension'
-          file_basenames.select { |filepath, basename|
-            if File.extname(basename).gsub('.', '') == cp['pattern'] # this might have to get fancier for regexen
-              add_errors(cp, filepath, commit_hash)
-            end
-          }
+          check_extension_pattern(check_pattern, commit_hash, file_basenames)
         when 'path'
-          file_basenames.select { |filepath, _|
-            escaped_pattern = cp['pattern'].gsub('\\', '\\\\')
-            match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
-            if match_result == 0
-              add_errors(cp, filepath, commit_hash)
-            end
-          }
+          check_path_pattern(check_pattern, commit_hash, file_basenames)
         else
-          p "invalid part of check pattern: #{cp}"
+          p "invalid part of check pattern: #{check_pattern}"
       end
     end
+  end
+
+  def check_path_pattern(check_pattern, commit_hash, file_basenames)
+    file_basenames.select { |filepath, _|
+      escaped_pattern = check_pattern['pattern'].gsub('\\', '\\\\')
+      match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
+      if match_result == 0
+        add_errors(check_pattern, filepath, commit_hash)
+      end
+    }
+  end
+
+  def check_extension_pattern(check_pattern, commit_hash, file_basenames)
+    file_basenames.select { |filepath, basename|
+      if File.extname(basename).gsub('.', '') == check_pattern['pattern'] # this might have to get fancier for regexen
+        add_errors(check_pattern, filepath, commit_hash)
+      end
+    }
+  end
+
+  def check_filename_pattern(check_pattern, commit_hash, file_basenames)
+    file_basenames.each { |filepath, basename|
+      match_result = basename =~ Regexp.new(check_pattern['pattern'])
+      if match_result == 0
+        add_errors(check_pattern, filepath, commit_hash)
+      end
+    }
   end
 
   private
