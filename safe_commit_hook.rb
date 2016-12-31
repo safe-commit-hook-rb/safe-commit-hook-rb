@@ -2,7 +2,7 @@
 
 class SafeCommitHook
   require 'json'
-  WHITELIST_NAME = ".ignored_security_risks"
+  WHITELIST_NAME = '.ignored_security_risks'
 
   def initialize(stdout)
     $stdout = stdout
@@ -16,7 +16,7 @@ class SafeCommitHook
       check_all_commits(check_patterns, repo_full_path, whitelist)
     end
     staged_file_basenames = get_staged_file_basenames(repo_full_path, whitelist)
-    check_files(check_patterns, staged_file_basenames, "currently staged files")
+    check_files(check_patterns, staged_file_basenames, 'currently staged files')
     print_errors_and_exit
   end
 
@@ -31,28 +31,30 @@ class SafeCommitHook
 
   def check_files(check_patterns, file_basenames, commit_hash)
     check_patterns.each do |cp|
-      case cp["part"]
-        when "filename"
+      case cp['part']
+        when 'filename'
           file_basenames.each { |filepath, basename|
-            match_result = basename =~ Regexp.new(cp["pattern"])
+            match_result = basename =~ Regexp.new(cp['pattern'])
             if match_result == 0
               add_errors(cp, filepath, commit_hash)
             end
           }
-        when "extension"
+        when 'extension'
           file_basenames.select { |filepath, basename|
-            if File.extname(basename).gsub(".", "") == cp["pattern"] # this might have to get fancier for regexen
+            if File.extname(basename).gsub('.', '') == cp['pattern'] # this might have to get fancier for regexen
               add_errors(cp, filepath, commit_hash)
             end
           }
-        when "path"
-          file_basenames.select { |filepath, basename|
-            escaped_pattern = cp["pattern"].gsub('\\', '\\\\')
+        when 'path'
+          file_basenames.select { |filepath, _|
+            escaped_pattern = cp['pattern'].gsub('\\', '\\\\')
             match_result = File.dirname(filepath) =~ Regexp.new(escaped_pattern)
             if match_result == 0
               add_errors(cp, filepath, commit_hash)
             end
           }
+        else
+          p "invalid part of check pattern: #{cp}"
       end
     end
   end
@@ -64,7 +66,7 @@ class SafeCommitHook
   end
 
   def add_errors(cp, filepath, commit_hash)
-    @errors << "#{cp["caption"]} in commit #{commit_hash} in file #{filepath}"
+    @errors << "#{cp['caption']} in commit #{commit_hash} in file #{filepath}"
   end
 
   def print_errors_and_exit
@@ -72,9 +74,9 @@ class SafeCommitHook
       start_red = "\e[31m"
       end_color = "\e[0m"
       puts start_red
-      puts "[ERROR] Unable to complete git commit."
-      puts "See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details"
-      puts "Add full filepath to .ignored_security_risks to ignore"
+      puts '[ERROR] Unable to complete git commit.'
+      puts 'See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details'
+      puts 'Add full filepath to .ignored_security_risks to ignore'
       puts @errors
       puts end_color
       exit 1
@@ -93,20 +95,20 @@ class SafeCommitHook
       basename = File::basename(fn)
       agg[fn] = basename
       agg
-    }.reject { |filepath, basename|
+    }.reject { |filepath, _|
       is_git_file?(filepath) || whitelist.include?(filepath)
     }
   end
 
   def is_git_file?(filepath)
-    filepath.split("/")[0] == ".git"
+    filepath.split('/')[0] == '.git'
   end
 
   def whitelisted_files
-    whitelists = Dir.glob("**/*", File::FNM_DOTMATCH).select { |f| f.include?(WHITELIST_NAME) }
+    whitelists = Dir.glob('**/*', File::FNM_DOTMATCH).select { |f| f.include?(WHITELIST_NAME) }
     files = []
     if whitelists == []
-      File.new(WHITELIST_NAME, "w")
+      File.new(WHITELIST_NAME, 'w')
       whitelists << WHITELIST_NAME
     end
     whitelists.each { |w|
@@ -117,7 +119,7 @@ class SafeCommitHook
 end
 
 if $PROGRAM_NAME == __FILE__
-  check_patterns_file = ENV["GIT_DENY_PATTERNS"] || ".git/hooks/git-deny-patterns.json"
-  check_all_commits = ENV["CHECK_ALL_COMMITS"]
+  check_patterns_file = ENV['GIT_DENY_PATTERNS'] || '.git/hooks/git-deny-patterns.json'
+  check_all_commits = ENV['CHECK_ALL_COMMITS']
   SafeCommitHook.new(STDOUT).run(`pwd`.strip, check_all_commits, check_patterns_file)
 end

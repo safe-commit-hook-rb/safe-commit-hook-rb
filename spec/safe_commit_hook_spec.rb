@@ -1,15 +1,15 @@
-require "spec_helper"
+require 'spec_helper'
 
-describe "SafeCommitHook" do
+describe SafeCommitHook do
   subject { SafeCommitHook.new(captured_output).run(repo_full_path, args, check_patterns) }
   let(:captured_output) { StringIO.new }
   let(:repo_full_path) { `pwd`.strip + "/#{repo}/" }
   let(:args) { [] }
-  let(:check_patterns) { "spec/empty.json" }
+  let(:check_patterns) { 'spec/empty.json' }
 
-  let(:default_whitelist) { ".ignored_security_risks" }
+  let(:default_whitelist) { '.ignored_security_risks' }
   let(:whitelist) { "#{repo_full_path}/.ignored_security_risks" }
-  let(:gem_credential) { "gem/credentials/something.txt" }
+  let(:gem_credential) { 'gem/credentials/something.txt' }
   let(:repo) { 'fake_git' }
   @g = nil # git repo refreshed for each test
 
@@ -44,10 +44,10 @@ describe "SafeCommitHook" do
 
   def commit_file(filepath)
     create_staged_file(filepath)
-    @g.commit("commit from test")
+    @g.commit('commit from test')
   end
 
-  def commit_removal_of_file(filepath)
+  def commit_removal_of_file(filepath) # TODO what is even happening here
     full_filename = "#{repo_full_path}/#{filename}"
     File.delete(full_filename)
 
@@ -55,23 +55,23 @@ describe "SafeCommitHook" do
     # `cd #{repo_full_path} && git add -A && git commit -m "commit from test - deletion"` # TODO use git gem in tests for better system compatibility
   end
 
-  describe "search all changed files for suspicious strings" do
-    it "finds password assignment"
-    it "finds high entrupy strings"
-    it "finds RSA key header"
+  describe 'search all changed files for suspicious strings' do
+    it 'finds password assignment'
+    it 'finds high entrupy strings'
+    it 'finds RSA key header'
   end
 
-  describe "check every commit in history, even if the checked in files are gone now" do
-    let(:args) { ["check_full"] }
-    let(:check_patterns) { "spec/file_removed_in_previous_commit.json" }
+  describe 'check every commit in history, even if the checked in files are gone now' do
+    let(:args) { ['check_full'] }
+    let(:check_patterns) { 'spec/file_removed_in_previous_commit.json' }
     # let(:check_patterns) { "spec/rsa.json" }
-    let(:filename) { "test_file_removed_in_previous_commit.txt" }
+    let(:filename) { 'test_file_removed_in_previous_commit.txt' }
 
-    it "does not see file that has never been committed" do
+    it 'does not see file that has never been committed' do
       expect { subject }.to_not raise_error
     end
 
-    it "sees file that has been committed and is still present" do
+    it 'sees file that has been committed and is still present' do
       commit_file(filename)
       did_exit = false
       begin
@@ -83,7 +83,7 @@ describe "SafeCommitHook" do
       expect(did_exit).to be true
     end
 
-    it "sees file that has been committed and removed" do
+    it 'sees file that has been committed and removed' do
       commit_file(filename)
       commit_removal_of_file(filename)
       did_exit = false
@@ -97,26 +97,26 @@ describe "SafeCommitHook" do
     end
   end
 
-  describe "with no committed passwords" do
-    it "detects no false positives" do
-      create_staged_file("ok_file.txt")
+  describe 'with no committed passwords' do
+    it 'detects no false positives' do
+      create_staged_file('ok_file.txt')
       expect { subject }.to_not raise_error
     end
   end
 
-  describe "with missing whitelist" do
-    it "does not error when whitelist is missing" do
+  describe 'with missing whitelist' do
+    it 'does not error when whitelist is missing' do
       FileUtils.rm_f(whitelist)
       expect { subject }.to_not raise_error
     end
   end
 
-  describe "with check patterns including filename rsa" do
-    let(:check_patterns) { "spec/rsa.json" }
-    describe "with filename including rsa" do
+  describe 'with check patterns including filename rsa' do
+    let(:check_patterns) { 'spec/rsa.json' }
+    describe 'with filename including rsa' do
 
-      it "returns with exit 1 and prints error" do
-        create_staged_file("id_rsa")
+      it 'returns with exit 1 and prints error' do
+        create_staged_file('id_rsa')
         did_exit = false
         begin
           subject
@@ -129,12 +129,12 @@ describe "SafeCommitHook" do
     end
   end
 
-  describe "with regex check pattern for all filenames" do
-    let(:check_patterns) { "spec/everything.json" }
+  describe 'with regex check pattern for all filenames' do
+    let(:check_patterns) { 'spec/everything.json' }
 
-    it "checks only files that are currently staged" do
+    it 'checks only files that are currently staged' do
       create_unstaged_file("#{repo}/file1.txt")
-      create_staged_file("file2.txt")
+      create_staged_file('file2.txt')
       begin
         subject
       rescue SystemExit
@@ -143,8 +143,8 @@ describe "SafeCommitHook" do
       expect(captured_output.string).to_not match /file1.txt/
     end
 
-    it "detects file with a name that matches the regex" do
-      create_staged_file("literally-anything")
+    it 'detects file with a name that matches the regex' do
+      create_staged_file('literally-anything')
       did_exit = false
       begin
         subject
@@ -155,8 +155,8 @@ describe "SafeCommitHook" do
       expect(did_exit).to be true
     end
 
-    it "accepts whitelisting" do
-      ignored_file = "ignored_file.txt"
+    it 'accepts whitelisting' do
+      ignored_file = 'ignored_file.txt'
       create_staged_file(ignored_file)
       add_to_whitelist(ignored_file)
       begin
@@ -166,7 +166,7 @@ describe "SafeCommitHook" do
       expect(captured_output.string).to_not match /ignored_file/
     end
 
-    it "always ignores .git" do
+    it 'always ignores .git' do
       begin
         subject
       rescue SystemExit
@@ -175,10 +175,10 @@ describe "SafeCommitHook" do
     end
   end
 
-  describe "with extensions check pattern" do
-    let(:check_patterns) { "spec/pem_extension.json" }
-    it "detects file with bad file ending" do
-      create_staged_file("probably_bad.pem")
+  describe 'with extensions check pattern' do
+    let(:check_patterns) { 'spec/pem_extension.json' }
+    it 'detects file with bad file ending' do
+      create_staged_file('probably_bad.pem')
       did_exit = false
       begin
         subject
@@ -189,22 +189,22 @@ describe "SafeCommitHook" do
       expect(did_exit).to be true
     end
 
-    it "does not detect file with file ending in its name but not actually a bad file ending" do
-      create_staged_file("pem.notpem")
+    it 'does not detect file with file ending in its name but not actually a bad file ending' do
+      create_staged_file('pem.notpem')
       expect { subject }.to_not raise_error
     end
   end
 
-  describe "with path check pattern" do
-    let(:check_patterns) { "spec/path.json" }
+  describe 'with path check pattern' do
+    let(:check_patterns) { 'spec/path.json' }
 
-    it "does not falsely detect" do
-      create_staged_file("gem/foo/credentials/something.txt")
+    it 'does not falsely detect' do
+      create_staged_file('gem/foo/credentials/something.txt')
       expect { subject }.to_not raise_error
     end
 
-    context "with bad path" do
-      it "detects bad path" do
+    context 'with bad path' do
+      it 'detects bad path' do
         create_staged_file(gem_credential)
         did_exit = false
         begin

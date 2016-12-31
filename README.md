@@ -80,3 +80,5 @@ optional(?) file text search for:
 ### Contributing
 
 Pull requests are welcome. I don't promise to merge them. Tests are good. :)
+
+Developer style: I'm currently just going with whatever intellij+ruby plugin tells me, which in this case is: single quotes unless you're using interpolation. I used to be firmly "double quotes everywhere so that you don't need to care" but I'm experimenting with following an opinionated tool's suggestions. Shall see.

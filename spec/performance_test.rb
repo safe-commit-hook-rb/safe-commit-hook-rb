@@ -24,19 +24,19 @@ def setup(dir)
   `cd #{dir} && cp ../../git-deny-patterns.json .git/hooks/git-deny-patterns.json`
 end
 
-def test_duration(dir, x, valid=true)
+def test_duration(dir, x)
   setup(dir)
   goto_dir = "cd #{dir} && "
 
   0.upto(x).each_slice(1000).map { |arr| # avoiding Errno::E2BIG cmd too big
     cmd = goto_dir + arr.map { |i|
       "touch #{i}_dsa"
-    }.join(" && ") + " && git add ."
+    }.join(' && ') + ' && git add .'
     `#{cmd}`
     p "created files for #{arr.count} files"
   }
   `cd #{dir} && git add .`
-  puts "Starting commit run"
+  puts 'Starting commit run'
   before_time = Time.now
   `cd #{dir} && git commit -m "testing commit hook"`
   after_time = Time.now
@@ -46,7 +46,7 @@ def test_duration(dir, x, valid=true)
   duration
 end
 
-dir = "perf-test-tmp"
+dir = 'perf-test-tmp'
 x = 100000
 duration = test_duration(dir, x)
 puts "\nDuration for #{x} files: #{duration}"
