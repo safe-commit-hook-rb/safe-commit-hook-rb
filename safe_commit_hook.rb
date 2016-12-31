@@ -10,14 +10,15 @@ class SafeCommitHook
   end
 
   def run(repo_full_path, check_all_commits, check_patterns_file)
-    check_patterns = check_patterns(check_patterns_file)
-    whitelist = whitelisted_files
+    check(check_all_commits, check_patterns(check_patterns_file), repo_full_path, whitelisted_files)
+    print_errors_and_exit
+  end
+
+  def check(check_all_commits, check_patterns, repo_full_path, whitelist)
     if check_all_commits
       check_all_commits(check_patterns, repo_full_path, whitelist)
     end
-    staged_file_basenames = get_staged_file_basenames(repo_full_path, whitelist)
-    check_files(check_patterns, staged_file_basenames, 'currently staged files')
-    print_errors_and_exit
+    check_files(check_patterns, get_staged_file_basenames(repo_full_path, whitelist), 'currently staged files')
   end
 
   def check_all_commits(check_patterns, repo_full_path, whitelist)
