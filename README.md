@@ -44,7 +44,7 @@ To run the tests:
 ````
 gem install bundler # first time only
 bundle install # first time only
-bundle exec rspec
+rspec
 ````
 
 To see test coverage:
@@ -59,6 +59,14 @@ To run the end to end test:
 cd spec/
 ./end_to_end_test.sh # should see the output of the commit hook refusing to commit a bad file
 ````
+
+To run the performance test:
+
+````
+cd spec/
+./performance_test.rb # WARNING: this might take several minutes and make your computer try to overheat.
+````
+
 
 
 ### Design notes
