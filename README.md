@@ -75,6 +75,8 @@ This is intentionally all one ruby file with no dependencies, so that it will be
 
 The check patterns are directly taken from [jandre/safe-commit-hook](https://github.com/jandre/safe-commit-hook) which itself takes from [git-rob](https://github.com/michenriksen/gitrob). I currently have no strategy to pull updates from "upstream".
 
+I hope to someday include functionality somewhat similar to https://github.com/dxa4481/truffleHog
+
 The generated file .ignored_security_risks is supposed to be checked into your repository. The scary name is on purpose.
 
 This tool currently does not work on windows. It has been tested on OSX. It might work on *nix.
@@ -87,7 +89,7 @@ optional(?) file text search for:
 
 - entropy (tokenize the file, pick out all the things that only occur once, and then do a frequency count on the characters. If it is obviously not English, or is relatively flat, and is at least some number of characters long, it's probably a key or compressed file or random)
 - suspicious strings like "BEGIN RSA PRIVATE KEY"
-- ignore specific files only in specific commits, like "lib/id_rsa 2ba492d " 
+- ignore specific files only in specific commits, like "lib/id_rsa 2ba492d "
 
 ### Contributing
 
