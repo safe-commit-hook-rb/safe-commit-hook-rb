@@ -32,7 +32,7 @@ Expected output (for error found)
 
 ````
 [ERROR] Unable to complete git commit.
-See .git/hooks/pre-commit or https://github.com/compwron/safe-commit-hook-rb for details
+See .git/hooks/pre-commit or https://github.com/safe-commit-hook-rb/safe-commit-hook-rb for details
 Add full filepath to .ignored_security_risks to ignore
 Potential cryptographic private key in file foo.pem
 ````
