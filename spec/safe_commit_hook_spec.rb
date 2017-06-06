@@ -31,16 +31,24 @@ describe SafeCommitHook do
     expect(IO.binread(whitelist)).to include(filepath)
   end
 
-  def create_unstaged_file(filename)
+  def create_unstaged_file(filename, contents="")
     dir = File.dirname(filename)
     FileUtils.mkdir_p(dir)
-    File.new(filename, 'w')
+    f = File.new(filename, 'w')
+    f.puts(contents)
+    f.close
   end
 
   def create_staged_file(filename)
     full_filename = "#{@repo_full_path}/#{filename}"
     create_unstaged_file(full_filename)
     @g.add(filename)
+  end
+
+  def create_staged_file_with_contents(filename, contents)
+    full_filename = "#{@repo_full_path}/#{filename}"
+    create_unstaged_file(full_filename, contents)
+    @g.add(full_filename)
   end
 
   def commit_file(filepath)
@@ -57,9 +65,45 @@ describe SafeCommitHook do
   end
 
   describe 'search all changed files for suspicious strings' do
-    it 'finds password assignment'
-    it 'finds high entropy strings'
-    it 'finds RSA key header'
+    xit 'finds high entropy strings' do
+      require 'openssl'
+      rsa_key = OpenSSL::PKey::RSA.new(2048)
+      p rsa_key.to_s
+      create_staged_file_with_contents("file_with_high_entropy_string.txt", "foo bar baz " + rsa_key)
+      did_exit = false
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /High entropy string #{rsa_key} in file file_with_high_entropy_string.txt/
+      expect(did_exit).to be true
+    end
+
+    it 'finds RSA key header' do
+      binding.pry
+      create_staged_file_with_contents("rsa_key_file.txt", "BEGIN RSA PRIVATE KEY")
+      did_exit = false
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /RSA key indicator found in rsa_key_file.txt line 1/
+      expect(did_exit).to be true
+      end
+
+    it 'finds RSA key end' do
+      create_staged_file_with_contents("rsa_key_file.txt", "foo\nEND RSA PRIVATE KEY")
+      did_exit = false
+      begin
+        subject
+      rescue SystemExit
+        did_exit = true
+      end
+      expect(captured_output.string).to match /RSA key indicator found in file_with_high_entropy_string.txt line 2/
+      expect(did_exit).to be true
+    end
   end
 
   describe 'when there are no bad files' do

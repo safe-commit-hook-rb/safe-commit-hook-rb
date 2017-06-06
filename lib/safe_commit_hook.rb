@@ -32,6 +32,25 @@ class SafeCommitHook
   end
 
   def check_files(check_patterns, file_basenames, commit_hash)
+    check_dangerous_file_contents(file_basenames, commit_hash)
+    check_provided_patterns(check_patterns, commit_hash, file_basenames)
+  end
+
+  def check_dangerous_file_contents(file_basenames, commit_hash)
+    #  TODO get base dir in here
+    file_basenames.each { |filepath, basename|
+      binding.pry
+      File.read(filepath).split("\n").each_with_index { |line, line_number|
+        ["BEGIN RSA PRIVATE KEY", "END RSA PRIVATE KEY"].each { |key|
+          if (line.include?(key))
+            add_errors(key, filepath + "line " + line_number, commit_hash)
+          end
+        }
+      }
+    }
+  end
+
+  def check_provided_patterns(check_patterns, commit_hash, file_basenames)
     check_patterns.each do |check_pattern|
       case check_pattern['part']
         when 'filename'
