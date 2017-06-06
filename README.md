@@ -77,6 +77,8 @@ The check patterns are directly taken from [jandre/safe-commit-hook](https://git
 
 I hope to someday include functionality somewhat similar to https://github.com/dxa4481/truffleHog
 
+Other interesting tool: https://github.com/srcclr/commit-watcher
+
 The generated file .ignored_security_risks is supposed to be checked into your repository. The scary name is on purpose.
 
 This tool currently does not work on windows. It has been tested on OSX. It might work on *nix.
