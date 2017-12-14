@@ -81,7 +81,6 @@ describe SafeCommitHook do
     end
 
     it 'finds RSA key header' do
-      binding.pry
       create_staged_file_with_contents("rsa_key_file.txt", "BEGIN RSA PRIVATE KEY")
       did_exit = false
       begin
